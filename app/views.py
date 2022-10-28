@@ -14,6 +14,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from django.contrib.auth.forms import AuthenticationForm
 from .models import *
+from django.core import serializers
 
 
 def index(request):
@@ -25,38 +26,55 @@ def index(request):
 def add_friend_form(request):
     me = User.objects.get(username=request.user.get_username())
     if request.method == "POST":
-        print('friend',request.method)
+        print("friend", request.method)
         friend_form = FriendForm(request.POST)
         if friend_form.is_valid():
-            friend_id = friend_form.cleaned_data['friendname']
-            print('friend_id:',friend_id,User.objects.filter(username=friend_id).exists())
+            friend_id = friend_form.cleaned_data["friendname"]
+            print(
+                "friend_id:",
+                friend_id,
+                User.objects.filter(username=friend_id).exists(),
+            )
             if User.objects.filter(username=friend_id).exists():
-                response_data={}
+                response_data = {}
                 friend = User.objects.get(username=friend_id)
                 if friend == me:
                     # raise forms.ValidationError("f")
-                    print('F')
+                    print("F")
                     response_data["result"] = "Failed!"
                     response_data["message"] = "Already exists!"
-                elif Friend.objects.filter(person1=me,person2=friend).exists() or Friend.objects.filter(person1=friend,person2=me).exists():
+                elif (
+                    Friend.objects.filter(person1=me, person2=friend).exists()
+                    or Friend.objects.filter(person1=friend, person2=me).exists()
+                ):
                     print("f")
                     response_data["result"] = "Failed!"
                     response_data["message"] = "Already exists!"
                 else:
-                    f = Friend(person1=me,person2=friend)
-                    f1 = Friend(person1=friend,person2=me)
+                    f = Friend(person1=me, person2=friend)
+                    f1 = Friend(person1=friend, person2=me)
 
-                    print('hi')
+                    print("hi")
                     f.save()
                     f1.save()
                     response_data["result"] = "Success!"
                     response_data["message"] = 'You"re saved'
-                return HttpResponse(json.dumps(response_data), content_type="application/json")
+                return HttpResponse(
+                    json.dumps(response_data), content_type="application/json"
+                )
 
-def loop_array(request):
-    arr=['C','O','D','E','S','P','E','E','D','Y']
 
-    return HttpResponse(json.dumps({"result":arr}), content_type="application/json")
+@csrf_exempt
+def loop_friends(request):
+    # friends_list = serializers.serialize("json", Friend.objects.all())
+    # friendsdata=list(Friend.objects.values())
+    # print("friends:",  Friend.objects.all())
+    _friends_data = list(Friend.objects.values('person2_id'))
+    IDS=[]
+    for element in _friends_data:
+     IDS.append(element['person2_id'])
+    result=list(User.objects.filter(id__in=IDS).values_list('username', flat=True))  # assuming IDS come from the script
+    return JsonResponse({"result": result})
 
 
 # @csrf_exempt

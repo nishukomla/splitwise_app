@@ -36,9 +36,6 @@
                     <option selected disabled class="text-hide">
                       Select friend
                     </option>
-                    <option value="1">One</option>
-                    <option value="2">Two</option>
-                    <option value="3">Three</option>
                   </select>
                 </div>
 
@@ -76,29 +73,34 @@
         getfriends();
 
         function getfriends() {
-          console.log("get frnds");
-          var optionsarray = ["test", "hello"];
-
-          var seloption = "";
-
-          $.each(optionsarray, function (i) {
-            seloption +=
-              '<option value="' +
-              optionsarray[i] +
-              '">' +
-              optionsarray[i] +
-              "</option>";
+          var optionsarray;
+          $.ajax({
+            type: "POST", // GET or POST
+            url: "{% url 'getfriends' %}",
+            // on success
+            success: function (response) {
+              console.log("Friends list  " + response.result);
+              optionsarray = response.result;
+              var seloption = "";
+              $.each(optionsarray, function (i) {
+                seloption +=
+                  '<option value="' +
+                  optionsarray[i] +
+                  '">' +
+                  optionsarray[i] +
+                  "</option>";
+              });
+              $("#selecttoappendto").append(seloption);
+            },
           });
-
-          $("#selecttoappendto").append(seloption);
         }
 
         $("#friendaddbtn").click(function () {
           console.log("Handler for .click() called.");
 
-          let friend_name = $("#exampleFriendName");
+          let friend_name = $("#selecttoappendto");
           console.log("test user name", $("#selecttoappendto").val());
-          return;
+          // return;
           // create an AJAX call
           $.ajax({
             data: {
@@ -109,7 +111,12 @@
             url: "{% url 'addfriend' %}",
             // on success
             success: function (response) {
-              console.log("Thankyou for reaching us out " + response);
+              console.log("Thankyou for reaching us out " + response.result);
+              if (response.result == "Failed!") {
+                console.log("response.message", response.message);
+                $("#alert_container").css({"display":"block"});
+                $("#myAlert").addClass("alert-warning").html(response.message);
+              }
             },
             // on error
             error: function (response) {
