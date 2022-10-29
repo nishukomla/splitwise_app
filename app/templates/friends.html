@@ -2,6 +2,12 @@
 <html lang="en">
   <head>
     {% include "head_part.html" %}
+
+    <!-- Custom styles for this page -->
+    <link
+      href="/static/vendor/datatables/dataTables.bootstrap4.min.css"
+      rel="stylesheet"
+    />
   </head>
 
   <body id="page-top">
@@ -50,6 +56,38 @@
                 </div>
               </div>
             </form>
+
+            <!-- DataTales Example -->
+            <div class="card shadow mb-4">
+              <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Friends</h6>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table
+                    class="table friends-table table-bordered"
+                    id="friendsdataTable"
+                    width="100%"
+                    cellspacing="0"
+                  >
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                      </tr>
+                    </thead>
+                    <!-- <tfoot>
+                      <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                      </tr>
+                    </tfoot> -->
+                    <tbody>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
           </div>
           <!-- /.container-fluid -->
         </div>
@@ -68,40 +106,63 @@
 
     {% include "modals_and_scripts_part.html" %}
 
+    <!-- Page level plugins -->
+    <script src="/static/vendor/datatables/jquery.dataTables.min.js"></script>
+    <script src="/static/vendor/datatables/dataTables.bootstrap4.min.js"></script>
+
+    <!-- Page level custom scripts -->
+
     <script>
       $(document).ready(function () {
+       var friendsdataTable= $("#friendsdataTable").DataTable();
         getfriends();
-
-        function getfriends() {
-          var optionsarray;
+        getusersFriends();
+        function getusersFriends() {
+          let optionsarray;
           $.ajax({
             type: "POST", // GET or POST
-            url: "{% url 'getfriends' %}",
+            url: "{% url 'getusersforFriendspage' %}",
+            data: {csrfmiddlewaretoken: '{{ csrf_token }}' },
             // on success
             success: function (response) {
-              console.log("Friends list  " + response.result);
               optionsarray = response.result;
               var seloption = "";
               $.each(optionsarray, function (i) {
                 seloption +=
                   '<option value="' +
-                  optionsarray[i] +
+                  optionsarray[i].username +
                   '">' +
-                  optionsarray[i] +
+                  optionsarray[i].username +
                   "</option>";
               });
               $("#selecttoappendto").append(seloption);
             },
           });
         }
+        function getfriends() {
+          let optionsarray;
+          let tablerows = "";
+          $.ajax({
+            type: "POST", // GET or POST
+            url: "{% url 'getfriends' %}",
+            data: {csrfmiddlewaretoken: '{{ csrf_token }}' },
+            // on success
+            success: function (response) {
+              console.log("Friends list  " + response.result);
+              optionsarray = response.result;
+              $.each(optionsarray, function (i) {
+                friendsdataTable.row.add([ optionsarray[i][0],  optionsarray[i][1]]).draw(false);
+              });
+             },
+          });
+        }
+
+        $("#close_btn").click(function () {
+          $("#alert_container").css({ display: "none" });
+        });
 
         $("#friendaddbtn").click(function () {
-          console.log("Handler for .click() called.");
-
           let friend_name = $("#selecttoappendto");
-          console.log("test user name", $("#selecttoappendto").val());
-          // return;
-          // create an AJAX call
           $.ajax({
             data: {
               csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
@@ -109,16 +170,15 @@
             }, // get the form data
             type: "POST", // GET or POST
             url: "{% url 'addfriend' %}",
-            // on success
             success: function (response) {
               console.log("Thankyou for reaching us out " + response.result);
               if (response.result == "Failed!") {
                 console.log("response.message", response.message);
-                $("#alert_container").css({"display":"block"});
+                $("#alert_container").css({ display: "block" });
                 $("#myAlert").addClass("alert-warning").html(response.message);
+                $("#alert_container").fadeOut(6000);
               }
             },
-            // on error
             error: function (response) {
               // alert the error if any error occured
               //   alert(response.responseJSON.errors);

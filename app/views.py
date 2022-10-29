@@ -66,15 +66,28 @@ def add_friend_form(request):
 
 @csrf_exempt
 def loop_friends(request):
-    # friends_list = serializers.serialize("json", Friend.objects.all())
-    # friendsdata=list(Friend.objects.values())
-    # print("friends:",  Friend.objects.all())
-    _friends_data = list(Friend.objects.values('person2_id'))
+    me = User.objects.filter(id=request.user.id).values('username','id').first()
+    _friends_data=list(Friend.objects.filter(person1=me['id']).values('person2_id'))
+    # _friends_data = list(Friend.objects.values('person2_id'))
     IDS=[]
     for element in _friends_data:
      IDS.append(element['person2_id'])
-    result=list(User.objects.filter(id__in=IDS).values_list('username', flat=True))  # assuming IDS come from the script
+    result=list(User.objects.filter(id__in=IDS).values_list('username','email'))  # assuming IDS come from the script
     return JsonResponse({"result": result})
+
+# @csrf_exempt
+def getusersforFriendspage(request):
+    current_user = request.user
+    result=list(User.objects.filter(is_superuser=False).exclude(id=current_user.id).values())
+    print('result:',result)
+    return JsonResponse({"result": result})
+
+@csrf_exempt
+def update_data(request):
+    # t = TemperatureData.objects.get(id=1)
+    # t.value = 999  # change field
+    # t.save() # this will update only
+    print('hello')
 
 
 # @csrf_exempt
