@@ -31,6 +31,9 @@ urlpatterns = [
     path("addfriend", views.add_friend_form, name="addfriend"),
     path("getfriends", views.loop_friends, name="getfriends"),
     path("getusersforFriendspage", views.getusersforFriendspage, name="getusersforFriendspage"),
+    path("updatefriend", views.update_friend_data, name="updatefriend"),
+    path("deletefriend",views.delete_friend,name="deletefriend"),
+    # update_friend_data
     # getusersforFriendspage
     path("logout", views.user_logout, name="logout"),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

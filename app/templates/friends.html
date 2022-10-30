@@ -74,6 +74,8 @@
                       <tr>
                         <th>Name</th>
                         <th>Email</th>
+                        <th></th>
+                        <!-- <th></th> -->
                       </tr>
                     </thead>
                     <!-- <tfoot>
@@ -113,8 +115,29 @@
     <!-- Page level custom scripts -->
 
     <script>
+      var editor;
       $(document).ready(function () {
-       var friendsdataTable= $("#friendsdataTable").DataTable();
+       var friendsdataTable= $("#friendsdataTable").DataTable({columns: [
+              { title: "Name" },
+              { title: "Email" },
+            //   {
+            //     data: null,
+            //     className:"dt-center editor-edit",
+            //     defaultContent: '<i class="fa fa-pencil-alt" style="cursor:pointer"/>',
+            //     orderable: false
+            // },
+            {
+                data: null,
+                className:"dt-center editor-delete",
+                defaultContent: '<i class="fa fa-trash" style="cursor:pointer"/>',
+                orderable: false
+            }
+
+              // { title: "", "defaultContent": "<button onclick='edititem();'>Edit</button>" },
+              // { title: "", "defaultContent": "<button onclick='deleteitem();'>Delete</button>" }
+          ],
+});
+
         getfriends();
         getusersFriends();
         function getusersFriends() {
@@ -153,9 +176,54 @@
               $.each(optionsarray, function (i) {
                 friendsdataTable.row.add([ optionsarray[i][0],  optionsarray[i][1]]).draw(false);
               });
+              $('#friendsdataTable > tbody > tr > td.dt-center').css('text-align','center')
              },
           });
         }
+
+        $('#friendsdataTable').on('click', 'td.editor-edit', function (e) {
+        e.preventDefault();
+        var $this = $(this);
+        var data = $('#friendsdataTable').DataTable().cell( $this ).data();
+        console.log(data);
+
+        // friendsdataTable.edit( $(this).closest('tr'), {
+        //         title: 'Edit record',
+        //         buttons: 'Update'
+        //     } );
+        } );
+
+
+        // Delete a record
+        $('#friendsdataTable').on('click', 'td.editor-delete', function (e) {
+            e.preventDefault();
+            let $this = $(this);
+            let friend_name = $('#friendsdataTable').DataTable().cell( $this ).data()[0];
+            $.ajax({
+            data: {
+              csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+              friendname: friend_name,
+            }, // get the form data
+            type: "POST", // GET or POST
+            url: "{% url 'deletefriend' %}",
+            success: function (response) {
+              if(response.result=='Success!'){
+                $("#alert_container").css({ display: "block" });
+                $("#myAlert").addClass("alert-success").html(response.message);
+                $("#alert_container").fadeOut(6000);
+                // window.location.reload();
+                $('#friendsdataTable').DataTable().clear().draw();
+                getfriends();
+
+              }else{
+                $("#alert_container").css({ display: "block" });
+                $("#myAlert").addClass("alert-danger").html(response.message);
+                $("#alert_container").fadeOut(6000);
+              }
+            },})
+
+        });
+
 
         $("#close_btn").click(function () {
           $("#alert_container").css({ display: "none" });
@@ -177,7 +245,12 @@
                 $("#alert_container").css({ display: "block" });
                 $("#myAlert").addClass("alert-warning").html(response.message);
                 $("#alert_container").fadeOut(6000);
-              }
+              }else{
+                $("#alert_container").css({ display: "block" });
+                $("#myAlert").addClass("alert-success").html(response.message);
+                $("#alert_container").fadeOut(6000);
+                $('#friendsdataTable').DataTable().clear().draw();
+                getfriends();              }
             },
             error: function (response) {
               // alert the error if any error occured

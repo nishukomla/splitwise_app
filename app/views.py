@@ -1,4 +1,5 @@
 import email
+from tkinter import FLAT
 from django import forms
 from django.views import generic
 from django.shortcuts import render, redirect
@@ -45,7 +46,7 @@ def add_friend_form(request):
                     response_data["message"] = "Already exists!"
                 elif (
                     Friend.objects.filter(person1=me, person2=friend).exists()
-                    or Friend.objects.filter(person1=friend, person2=me).exists()
+                    # or Friend.objects.filter(person1=friend, person2=me).exists()
                 ):
                     print("f")
                     response_data["result"] = "Failed!"
@@ -64,7 +65,7 @@ def add_friend_form(request):
                 )
 
 
-@csrf_exempt
+# @csrf_exempt
 def loop_friends(request):
     me = User.objects.filter(id=request.user.id).values('username','id').first()
     _friends_data=list(Friend.objects.filter(person1=me['id']).values('person2_id'))
@@ -82,12 +83,29 @@ def getusersforFriendspage(request):
     print('result:',result)
     return JsonResponse({"result": result})
 
-@csrf_exempt
-def update_data(request):
-    # t = TemperatureData.objects.get(id=1)
-    # t.value = 999  # change field
-    # t.save() # this will update only
+# @csrf_exempt
+def update_friend_data(request):
+    t = Friend.objects.get(id=1)
+    t.value = 999  # change field
+    t.save() # this will update only
     print('hello')
+
+def delete_friend(request):
+    response_data={}
+    login_user = User.objects.filter(id=request.user.id).values('username','id').first()
+    if request.method == "POST":
+        username = request.POST["friendname"]
+        frndIdObj=User.objects.filter(username=username).values('id').first()
+        print('frnd id:',User.objects.filter(username=username).values('id').first())
+        instance=Friend.objects.filter(person1=login_user['id'],person2=frndIdObj['id'])
+        # instance = Friend.objects.get(username=username)
+        instance.delete()
+        response_data["result"] = "Success!"
+        response_data["message"] = 'Deleted successfully.'
+        return JsonResponse(response_data, status=200)
+
+
+
 
 
 # @csrf_exempt
