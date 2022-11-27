@@ -24,3 +24,29 @@ class NewUserForm(forms.ModelForm):
 
 class FriendForm(forms.Form):
 	friendname = forms.CharField(max_length=100,required=True)
+
+class GroupForm(forms.Form):
+    # group_name = forms.CharField(label='Group name', max_length=100)
+    group_name = forms.CharField()
+    # friends = forms.MultipleChoiceField()
+
+    # def current_frnd(self):
+    #     friends = forms.MultipleChoiceField(choices=self.cleaned_data["username"])
+    #     return friends
+
+
+    # RANGE_SHORT = 's'
+    # RANGE_MID = 'm'
+    # RANGE_LONG = 'l'
+    # RANGE_CHOICES = (
+    #     (RANGE_SHORT, 'Sho'),
+    #     (RANGE_MID, 'Mid range'),
+    #     (RANGE_LONG, 'Long range')
+    # )
+    # friends = forms.MultipleChoiceField(choices=[])
+
+    # def __init__(self, user, *args, **kwargs):
+    #     super(GroupForm, self).__init__(*args, **kwargs)
+    #     self.fields['friends'] = forms.MultipleChoiceField(
+    #         choices=user
+    #     )

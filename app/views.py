@@ -10,12 +10,13 @@ from django.db.models import ObjectDoesNotExist
 # from .forms import ContactForm
 from django.http import JsonResponse
 import json
-from .forms import FriendForm, NewUserForm
+from .forms import FriendForm, GroupForm, NewUserForm
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from django.contrib.auth.forms import AuthenticationForm
 from .models import *
 from django.core import serializers
+import pandas as pd
 
 
 def index(request):
@@ -65,47 +66,144 @@ def add_friend_form(request):
                 )
 
 
+def add_group(request):
+
+    userobj = User.objects.filter(id=request.user.id).values("username", "id").first()
+    user_id = userobj["id"]
+    me = User.objects.get(id=user_id)
+    print("me", me)
+    # return
+    group_form = GroupForm(request.POST)
+    print("test data result:", request.method, User, request.POST.getlist("friends"))
+    # return
+    # if request.method == "POST" and group_form.is_valid():
+    #     print('request:',request.POST,request.POST.getlist('friends'))
+    # return JsonResponse({"result": 'data response'})
+
+    if group_form.is_valid():
+        name = group_form.cleaned_data["group_name"]
+        print("request:", request.POST, request.POST.getlist("friends[]"))
+        people = request.POST.getlist("friends[]")
+        print("people:", people)
+        # return
+        g = Group(group_name=name)
+        g.save()
+        # print('me:',me['username'])
+        # return
+        m = Membership(friend=me, group=g)
+        print("memene:", m)
+        m.save()
+        for p in people:
+            preal = User.objects.get(username=p)
+            for p1 in people:
+                if p != p1:
+                    p1real = User.objects.get(username=p1)
+                    if not Friend.objects.filter(
+                        person1=preal, person2=p1real
+                    ).exists():
+                        fxxx = Friend(person1=preal, person2=p1real)
+                        fxxx1 = Friend(person1=p1real, person2=preal)
+                        fxxx.save()
+                        fxxx1.save()
+            for p in people:
+                member = User.objects.get(username=p)
+                m = Membership(friend=member, group=g)
+                m.save()
+            # print(member)
+            return JsonResponse({"result": "Success!"})
+
+
+def getGroups(request):
+    me = User.objects.get(id=request.user.id)
+    groups = Membership.objects.filter(friend=me)
+    groups_boolean = []
+    for g in groups:
+        print("inner money group:", g.money_owed)
+        if g.money_owed < 0:
+            g.money_owed = -1 * g.money_owed
+            groups_boolean.append(0)
+        else:
+            groups_boolean.append(1)
+    # print("test grps:", list(groups))
+    ids = groups.values_list("group", flat=True)
+    new_groups_list = Group.objects.filter(id__in=list(ids)).values_list(
+        "group_name", flat=True
+    )
+    print("groups_list:", new_groups_list)
+    groupslist = []
+    for money in groups:
+        print("nxt money:", money.money_owed, money.group.group_name)
+        mydict = {}
+        mydict["name"] = money.group.group_name
+        mydict["money_owed"] = money.money_owed
+        groupslist.append(mydict)
+    # groups_list = zip(new_groups_list,groups_boolean)
+    # result_list = list(groups_list)
+    # # print('testind info:',result_list)
+    # b = [item for item in result_list]
+    # mylist = []
+    # print(b)
+    # for n in b:
+    #     print('test data for:',n)
+    #     mydict = {}
+    #     mydict['name'] = n[0]
+    #     mydict['price'] = n[1]
+    #     mylist.append(mydict)
+    # print('test data:',mylist)
+    return JsonResponse({"result": "Success!", "data": groupslist})
+
+
 # @csrf_exempt
 def loop_friends(request):
-    me = User.objects.filter(id=request.user.id).values('username','id').first()
-    _friends_data=list(Friend.objects.filter(person1=me['id']).values('person2_id'))
+    print("test frnd request:", request.POST)
+    # return
+    me = User.objects.filter(id=request.user.id).values("username", "id").first()
+    _friends_data = list(Friend.objects.filter(person1=me["id"]).values("person2_id"))
     # _friends_data = list(Friend.objects.values('person2_id'))
-    IDS=[]
+    IDS = []
     for element in _friends_data:
-     IDS.append(element['person2_id'])
-    result=list(User.objects.filter(id__in=IDS).values_list('username','email'))  # assuming IDS come from the script
+        IDS.append(element["person2_id"])
+    result = list(
+        User.objects.filter(id__in=IDS).values_list("username", "email")
+    )  # assuming IDS come from the script
     return JsonResponse({"result": result})
+
 
 # @csrf_exempt
 def getusersforFriendspage(request):
     current_user = request.user
-    result=list(User.objects.filter(is_superuser=False).exclude(id=current_user.id).values())
-    print('result:',result)
+    result = list(
+        User.objects.filter(is_superuser=False).exclude(id=current_user.id).values()
+    )
+    print("result:", result)
     return JsonResponse({"result": result})
+
 
 # @csrf_exempt
 def update_friend_data(request):
     t = Friend.objects.get(id=1)
     t.value = 999  # change field
-    t.save() # this will update only
-    print('hello')
+    t.save()  # this will update only
+    print("hello")
+
 
 def delete_friend(request):
-    response_data={}
-    login_user = User.objects.filter(id=request.user.id).values('username','id').first()
+    response_data = {}
+    login_user = (
+        User.objects.filter(id=request.user.id).values("username", "id").first()
+    )
     if request.method == "POST":
         username = request.POST["friendname"]
-        frndIdObj=User.objects.filter(username=username).values('id').first()
-        print('frnd id:',User.objects.filter(username=username).values('id').first())
-        instance=Friend.objects.filter(person1=login_user['id'],person2=frndIdObj['id'])
+        frndIdObj = User.objects.filter(username=username).values("id").first()
+        print("frnd id:", User.objects.filter(username=username).values("id").first())
+        instance = Friend.objects.filter(
+            person1=login_user["id"], person2=frndIdObj["id"]
+        )
         # instance = Friend.objects.get(username=username)
         instance.delete()
         response_data["result"] = "Success!"
-        response_data["message"] = 'Deleted successfully.'
+        response_data["message"] = "Deleted successfully."
         return JsonResponse(response_data, status=200)
-
-
-
 
 
 # @csrf_exempt

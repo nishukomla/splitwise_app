@@ -33,6 +33,8 @@ urlpatterns = [
     path("getusersforFriendspage", views.getusersforFriendspage, name="getusersforFriendspage"),
     path("updatefriend", views.update_friend_data, name="updatefriend"),
     path("deletefriend",views.delete_friend,name="deletefriend"),
+    path("addgroup",views.add_group,name="addgroup"),
+    path("getgroups",views.getGroups,name="getgroups"),
     # update_friend_data
     # getusersforFriendspage
     path("logout", views.user_logout, name="logout"),

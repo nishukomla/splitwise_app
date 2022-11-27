@@ -27,17 +27,10 @@
             <div class="row">{{ i }}</div>
             {% endfor %}
 
-            <form class="user" id="registrationForm" method="post">
+            <form class="user"  method="post">
               {% csrf_token %}
               <div class="form-group row">
                 <div class="col-sm-6 mb-3 mb-sm-0">
-                  <!-- <input
-                    type="text"
-                    class="form-control"
-                    id="exampleFriendName"
-                    placeholder="Friend Name"
-                  /> -->
-
                   <select id="selecttoappendto" class="custom-select">
                     <option selected disabled class="text-hide">
                       Select friend
@@ -115,7 +108,6 @@
     <!-- Page level custom scripts -->
 
     <script>
-      var editor;
       $(document).ready(function () {
        var friendsdataTable= $("#friendsdataTable").DataTable({columns: [
               { title: "Name" },
