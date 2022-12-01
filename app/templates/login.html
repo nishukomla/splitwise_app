@@ -8,13 +8,13 @@
     <div class="container">
       <!-- Outer Row -->
       <div class="row justify-content-center">
-        <div class="col-xl-10 col-lg-12 col-md-9">
+        <div class="col-xl-5 col-lg-6 col-md-5">
           <div class="card o-hidden border-0 shadow-lg my-5">
             <div class="card-body p-0">
               <!-- Nested Row within Card Body -->
               <div class="row">
-                <div class="col-lg-6 d-none d-lg-block bg-login-image"></div>
-                <div class="col-lg-6">
+                <!-- <div class="col-lg-6 d-none d-lg-block bg-login-image"></div> -->
+                <div class="col-lg-12">
                   <div class="p-5">
                     <div class="text-center">
                       <h1 class="h4 text-gray-900 mb-4">Welcome Back!</h1>
@@ -29,6 +29,10 @@
                           aria-describedby="usernameHelp"
                           placeholder="Enter username..."
                         />
+                        <span id="usercheck" style="color: red;">
+                          **Username is missing
+                        </span>
+
                       </div>
                       <div class="form-group">
                         <input
@@ -38,6 +42,9 @@
                           id="exampleInputPassword"
                           placeholder="Password"
                         />
+                        <span id="passcheck" style="color: red;">
+                          **Please Fill the password
+                        </span>
                       </div>
                       {% if error %}
                       <div class="form-group">
@@ -116,9 +123,66 @@
     <script>
       $(document).ready(function () {
         // catch the form's submit event
+        $("#usercheck").hide();
+        let usernameError = true;
+        $("#exampleInputUsername").keyup(function () {
+          validateUsername();
+        });
+
+        function validateUsername() {
+          let usernameValue = $("#exampleInputUsername").val();
+          if (usernameValue.length == "") {
+            $("#usercheck").show();
+            usernameError = false;
+            return false;
+          } else if (usernameValue.length < 3 || usernameValue.length > 10) {
+            $("#usercheck").show();
+            $("#usercheck").html("**length of username must be between 3 and 10");
+            usernameError = false;
+            return false;
+          } else {
+            $("#usercheck").hide();
+          }
+        }
+
+        $("#passcheck").hide();
+        let passwordError = true;
+        $("#exampleInputPassword").keyup(function () {
+          validatePassword();
+        });
+        function validatePassword() {
+          let passwordValue = $("#exampleInputPassword").val();
+          if (passwordValue.length == "") {
+            $("#passcheck").show();
+            passwordError = false;
+            return false;
+          }
+          if (passwordValue.length < 3 || passwordValue.length > 10) {
+            $("#passcheck").show();
+            $("#passcheck").html(
+              "**length of your password must be between 3 and 10"
+            );
+            $("#passcheck").css("color", "red");
+            passwordError = false;
+            return false;
+          } else {
+            $("#passcheck").hide();
+          }
+        }
+
+
+
         $("#loginForm").submit(function () {
           let contact_username = $("#exampleInputUsername");
           let password = $("#exampleInputPassword");
+          validateUsername();
+          validatePassword();
+          if (
+      usernameError == true &&
+      passwordError == true
+    ) {
+      return true;
+    } else {
           // create an AJAX call
           $.ajax({
             data: {
@@ -133,8 +197,12 @@
             // on success
             success: function (response) {
               console.log("Thankyou for reaching us out " + response);
-              let url = "index.html";
+              if(response!="Invalid"){
+                let url = "index.html";
                 $(location).attr("href", url);
+              }
+              // let url = "index.html";
+              //   $(location).attr("href", url);
             },
             // on error
             error: function (response) {
@@ -144,6 +212,7 @@
             },
           });
           return false;
+        };
         });
       });
     </script>

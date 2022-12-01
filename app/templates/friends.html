@@ -23,9 +23,9 @@
           <div class="container-fluid">
             <!-- Page Heading -->
             <h1 class="h3 mb-4 text-gray-800">Friends</h1>
-            {% for i in arr %}
+            <!-- {% for i in arr %}
             <div class="row">{{ i }}</div>
-            {% endfor %}
+            {% endfor %} -->
 
             <form class="user"  method="post">
               {% csrf_token %}
@@ -67,8 +67,8 @@
                       <tr>
                         <th>Name</th>
                         <th>Email</th>
+                        <th>Status</th>
                         <th></th>
-                        <!-- <th></th> -->
                       </tr>
                     </thead>
                     <!-- <tfoot>
@@ -112,6 +112,7 @@
        var friendsdataTable= $("#friendsdataTable").DataTable({columns: [
               { title: "Name" },
               { title: "Email" },
+              { title: "Status" },
             //   {
             //     data: null,
             //     className:"dt-center editor-edit",
@@ -166,7 +167,7 @@
               console.log("Friends list  " + response.result);
               optionsarray = response.result;
               $.each(optionsarray, function (i) {
-                friendsdataTable.row.add([ optionsarray[i][0],  optionsarray[i][1]]).draw(false);
+                friendsdataTable.row.add([ optionsarray[i][0],  optionsarray[i][1], optionsarray[i][3]]).draw(false);
               });
               $('#friendsdataTable > tbody > tr > td.dt-center').css('text-align','center')
              },

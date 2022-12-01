@@ -35,6 +35,8 @@ urlpatterns = [
     path("deletefriend",views.delete_friend,name="deletefriend"),
     path("addgroup",views.add_group,name="addgroup"),
     path("getgroups",views.getGroups,name="getgroups"),
+    path("addexpense",views.transaction_form,name="addexpense"),
+    path("getCurrentUser",views.get_current_user,name="getCurrentUser"),
     # update_friend_data
     # getusersforFriendspage
     path("logout", views.user_logout, name="logout"),

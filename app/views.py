@@ -6,6 +6,9 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.db.models import ObjectDoesNotExist
+from decimal import Decimal
+from django.forms.models import model_to_dict
+
 
 # from .forms import ContactForm
 from django.http import JsonResponse
@@ -164,9 +167,157 @@ def loop_friends(request):
     for element in _friends_data:
         IDS.append(element["person2_id"])
     result = list(
-        User.objects.filter(id__in=IDS).values_list("username", "email")
+        User.objects.filter(id__in=IDS).values_list("username", "email","id")
     )  # assuming IDS come from the script
-    return JsonResponse({"result": result})
+    currme = User.objects.get(username=request.user.get_username())
+    friends = Friend.objects.filter(person1=currme)
+    print("my friends:", result)
+    friends_boolean = []
+    for y in friends:
+        if y.money_owed < 0:
+            y.money_owed = (-1) * (y.money_owed)
+    print("final frnds:", friends.values('person2','money_owed'))
+    # friends_list = list(friends)
+    # oi = OrgInvite.objects.get(token=100)
+    oi_dict_money = friends.values('person2','money_owed')
+    OrgInvite=[]
+    for ele in result:
+        for item in oi_dict_money:
+            print('my elle:',ele[2],item)
+            if(ele[2] == item.get('person2')):
+                # ele.append(money_owed=item['money_owed'])
+                ele=ele[:3]+(item['money_owed'],)+ele[3:]
+                OrgInvite.append(ele)
+            else:
+                OrgInvite=[]
+    print('Final frnds:',OrgInvite)
+    # oi_serialized = json.dumps(oi_dict)
+    # friends_list = serializers.serialize("json",OrgInvite)
+
+
+    return JsonResponse({"result": OrgInvite})
+    # return JsonResponse({"result": result})
+
+
+def transaction_form(request):
+    # me = User.objects.filter(id=request.user.id).values("username", "id").first()
+    me = request.user
+    people = request.POST.getlist("people[]")
+    print("people:", people)
+    final_choices = ()
+    # final_choices = final_choices + ((me['username'], me['username']),)
+    for p in people:
+        thistuple = (str(p), str(p))
+        final_choices = final_choices + (thistuple,)
+        # for i in final_choices:
+        #     data = request.POST.getlist('shareData[]')[i]
+        #     shares[str(i[0])]=data
+    # choices = request.POST.getlist('choices[]')
+    # template = loader.get_template('transaction_form.html')
+    # transaction_form = TransactionForm(final_choices)
+    print("request.method", request.method)
+    if request.method == "POST":
+        # if 'transaction' in request.POST:
+        # transaction_form=TransactionForm(final_choices, request.POST)
+        # if transaction_form.is_valid():
+        desc = request.POST["description"]
+        who_paid = request.POST.getlist("who_paid[]")
+        # array_data = request.POST['shareData']
+        # data = json.loads(array_data)
+        # print(data)
+        # shareData=request.POST['shareData']
+        # print("share data:", request.POST["shareData"])
+        amt = int(request.POST["amount"])
+        split = request.POST["split"]
+        tag = request.POST["tag"]
+        shares = {}
+        index = 0
+        # for i in final_choices:
+        for index, value in enumerate(final_choices):
+            print("check val is:", index, value, value[0], final_choices)
+            array_data = request.POST["shareData"]
+            newdata = json.loads(array_data)
+            print("data:", newdata[index], newdata[index][value[0]])
+            data = newdata[index][value[0]]
+            shares[str(value[0])] = data
+        payer = User.objects.get(username=who_paid[0])
+
+        if split == "equal":
+            share_amt = amt / len(final_choices)
+            print("share_amt:", share_amt)
+            t1 = Transaction(
+                group_transaction_id=Transaction.no_transactions,
+                lender=payer,
+                borrower=payer,
+                description=desc,
+                amount=share_amt,
+                tag=tag,
+                added_by=me,
+                paid_by=payer,
+            )
+            t1.save()
+            for p in final_choices:
+
+                # print(p[0])
+                user = User.objects.get(username=p[0])
+                if user != payer:
+                    t = Transaction(
+                        group_transaction_id=Transaction.no_transactions,
+                        lender=payer,
+                        borrower=user,
+                        description=desc,
+                        amount=share_amt,
+                        tag=tag,
+                        added_by=me,
+                        paid_by=payer,
+                    )
+                    t.save()
+                    f1 = Friend.objects.get(person1=payer, person2=user)
+                    x = f1.money_owed + Decimal(share_amt)
+                    f1.money_owed = x
+                    f1.save()
+                    f2 = Friend.objects.get(person1=user, person2=payer)
+                    y = f2.money_owed - Decimal(share_amt)
+                    f2.money_owed = y
+                    f2.save()
+
+        else:
+            for p in final_choices:
+                share_amt = shares[str(p[0])] / 100 * amt
+                user = User.objects.get(username=p[0])
+                t = Transaction(
+                    group_transaction_id=Transaction.no_transactions,
+                    lender=payer,
+                    borrower=user,
+                    description=desc,
+                    amount=share_amt,
+                    tag=tag,
+                    added_by=me,
+                    paid_by=payer,
+                )
+                t.save()
+                if user != payer:
+                    f1 = Friend.objects.get(person1=payer, person2=user)
+                    x = f1.money_owed + share_amt
+                    f1.money_owed = x
+                    f1.save()
+                    f2 = Friend.objects.get(person1=user, person2=payer)
+                    y = f2.money_owed - share_amt
+                    f2.money_owed = y
+                    f2.save()
+
+        # print(share_amt)
+        Transaction.no_transactions = Transaction.no_transactions + 1
+        print(Transaction.no_transactions)
+    # return HttpResponseRedirect('/splitwise/success/')
+
+    context = {"status": "Success!"}
+    return JsonResponse({"result": context})
+
+
+def get_current_user(request):
+    current_user = User.objects.filter(id=request.user.id).values()
+    return JsonResponse({"result": list(current_user)})
 
 
 # @csrf_exempt

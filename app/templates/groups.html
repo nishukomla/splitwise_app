@@ -179,7 +179,7 @@
               console.log('response:',response);
               groupsarray=response.data;
               $.each(groupsarray, function (i) {
-                // groupsdataTable.row.add([ groupsarray[i]['name'],  groupsarray[i]['money_owed']]).draw(false);
+                groupsdataTable.row.add([ groupsarray[i]['name'],  groupsarray[i]['money_owed']]).draw(false);
               });
               $('#groupsdataTable > tbody > tr > td.dt-center').css('text-align','center')
 
