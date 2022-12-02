@@ -5,9 +5,19 @@ from django.views import generic
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
-from django.db.models import ObjectDoesNotExist
+
+# from django.db.models import ObjectDoesNotExist
 from decimal import Decimal
 from django.forms.models import model_to_dict
+from django.template import loader
+from django.http import HttpResponse, HttpResponseRedirect
+from django.contrib.auth.forms import PasswordResetForm
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
+from django.template.loader import render_to_string
+from django.core.mail import send_mail, BadHeaderError
+from django.db.models.query_utils import Q
 
 
 # from .forms import ContactForm
@@ -72,6 +82,7 @@ def add_friend_form(request):
 def add_group(request):
 
     userobj = User.objects.filter(id=request.user.id).values("username", "id").first()
+    print("user obj:", request.user, request.user.id, userobj)
     user_id = userobj["id"]
     me = User.objects.get(id=user_id)
     print("me", me)
@@ -130,7 +141,7 @@ def getGroups(request):
     # print("test grps:", list(groups))
     ids = groups.values_list("group", flat=True)
     new_groups_list = Group.objects.filter(id__in=list(ids)).values_list(
-        "group_name", flat=True
+        "group_name", "id"
     )
     print("groups_list:", new_groups_list)
     groupslist = []
@@ -139,6 +150,7 @@ def getGroups(request):
         mydict = {}
         mydict["name"] = money.group.group_name
         mydict["money_owed"] = money.money_owed
+        mydict["id"] = money.group.id
         groupslist.append(mydict)
     # groups_list = zip(new_groups_list,groups_boolean)
     # result_list = list(groups_list)
@@ -167,7 +179,7 @@ def loop_friends(request):
     for element in _friends_data:
         IDS.append(element["person2_id"])
     result = list(
-        User.objects.filter(id__in=IDS).values_list("username", "email","id")
+        User.objects.filter(id__in=IDS).values_list("username", "email", "id")
     )  # assuming IDS come from the script
     currme = User.objects.get(username=request.user.get_username())
     friends = Friend.objects.filter(person1=currme)
@@ -176,27 +188,221 @@ def loop_friends(request):
     for y in friends:
         if y.money_owed < 0:
             y.money_owed = (-1) * (y.money_owed)
-    print("final frnds:", friends.values('person2','money_owed'))
+    print("final frnds:", friends.values("person2", "money_owed"))
     # friends_list = list(friends)
     # oi = OrgInvite.objects.get(token=100)
-    oi_dict_money = friends.values('person2','money_owed')
-    OrgInvite=[]
+    oi_dict_money = friends.values("person2", "money_owed")
+    OrgInvite = []
     for ele in result:
         for item in oi_dict_money:
-            print('my elle:',ele[2],item)
-            if(ele[2] == item.get('person2')):
+            print("my elle:", ele[2], item)
+            if ele[2] == item.get("person2"):
                 # ele.append(money_owed=item['money_owed'])
-                ele=ele[:3]+(item['money_owed'],)+ele[3:]
+                ele = ele[:3] + (item["money_owed"],) + ele[3:]
+                if item["money_owed"] < 0:
+                    ele = ele[:4] + (0,) + ele[4:]
+                else:
+                    ele = ele[:4] + (1,) + ele[4:]
                 OrgInvite.append(ele)
-            else:
-                OrgInvite=[]
-    print('Final frnds:',OrgInvite)
+            # else:
+            #     OrgInvite=[]
+    print("Final frnds:", OrgInvite)
     # oi_serialized = json.dumps(oi_dict)
     # friends_list = serializers.serialize("json",OrgInvite)
 
-
     return JsonResponse({"result": OrgInvite})
     # return JsonResponse({"result": result})
+
+
+def friend(request, f):
+    print("test friend:", request, f)
+    me = request.user
+    print(f)
+    friend = User.objects.get(id=f)
+    print(friend)
+    x = Friend.objects.filter(person1__username=me)
+    print(f)
+    z = 0
+    a = ""
+    for y in x:
+        if y.person2.username == friend.username:
+            zxxx = 0
+            ts = Transaction.objects.filter(lender=me, borrower=friend, group=None)
+            for t in ts:
+                zxxx = zxxx + t.amount
+            ts = Transaction.objects.filter(lender=friend, borrower=me, group=None)
+            for t in ts:
+                zxxx = zxxx - t.amount
+            a = str(y.person2)
+    groups_list = []
+    groups = Membership.objects.filter(friend=me)
+    for g in groups:
+        if Membership.objects.filter(group=g.group, friend=friend).exists():
+            m = Membership.objects.get(group=g.group, friend=friend)
+            groups_list.append([m.group, 0])
+
+    for g in groups_list:
+        tlist = Transaction.objects.filter(group=g[0], lender=me, borrower=friend)
+        for t in tlist:
+            g[1] = g[1] + t.amount
+        tlist = Transaction.objects.filter(group=g[0], lender=friend, borrower=me)
+        for t in tlist:
+            g[1] = g[1] - t.amount
+    print(groups_list)
+    for g in groups_list:
+        print(g[0].group_name)
+    if request.method == "POST":
+        if "settle_up" in request.POST:
+            if zxxx > 0:
+                t = Transaction(
+                    group_transaction_id=Transaction.no_transactions,
+                    lender=friend,
+                    borrower=me,
+                    description="Settling!",
+                    amount=zxxx,
+                    tag="st",
+                    added_by=me,
+                    paid_by=friend,
+                )
+                t.save()
+                Transaction.no_transactions = Transaction.no_transactions + 1
+            elif zxxx < 0:
+                t = Transaction(
+                    group_transaction_id=Transaction.no_transactions,
+                    lender=me,
+                    borrower=friend,
+                    description="Settling!",
+                    amount=-1 * zxxx,
+                    tag="st",
+                    added_by=me,
+                    paid_by=me,
+                )
+                t.save()
+                Transaction.no_transactions = Transaction.no_transactions + 1
+            else:
+                pass
+            for g in groups_list:
+                if g[1] > 0:
+                    no = g[0].no_transactions
+                    t = Transaction(
+                        group=g[0],
+                        group_transaction_id=no,
+                        lender=friend,
+                        borrower=me,
+                        description="Settling!",
+                        amount=g[1],
+                        tag="st",
+                        added_by=me,
+                        paid_by=friend,
+                    )
+                    t.save()
+                    m1 = Membership.objects.get(group=g[0], friend=me)
+                    z = m1.money_owed - g[1]
+                    m1.money_owed = z
+                    m1.save()
+                    m2 = Membership.objects.get(group=g[0], friend=friend)
+                    z = m2.money_owed + g[1]
+                    m2.money_owed = z
+                    m2.save()
+                    z = g[0].no_transactions + 1
+                    g[0].no_transactions = z
+                    g[0].save()
+                elif g[1] < 0:
+                    no = g[0].no_transactions
+                    t = Transaction(
+                        group=g[0],
+                        group_transaction_id=no,
+                        lender=me,
+                        borrower=friend,
+                        description="Settling!",
+                        amount=-1 * g[1],
+                        tag="st",
+                        added_by=me,
+                        paid_by=me,
+                    )
+                    t.save()
+                    m1 = Membership.objects.get(group=g[0], friend=friend)
+                    z = m1.money_owed - (-1 * g[1])
+                    m1.money_owed = z
+                    m1.save()
+                    m2 = Membership.objects.get(group=g[0], friend=me)
+                    z = m2.money_owed + (-1 * g[1])
+                    m2.money_owed = z
+                    m2.save()
+                    z = g[0].no_transactions + 1
+                    g[0].no_transactions = z
+                    g[0].save()
+                    pass
+                else:
+                    pass
+        f1 = Friend.objects.get(person1=me, person2=friend)
+        print("test 1st frnd:", f1)
+        f1.money_owed = 0
+        f1.save()
+        f2 = Friend.objects.get(person1=friend, person2=me)
+        print("test 2nd frnd:", f2)
+        f2.money_owed = 0
+        f2.save()
+        idx = str(friend.id)
+        return HttpResponse("payments.html")
+    template = loader.get_template("expanded_friend.html")
+    print(zxxx)
+    if zxxx >= 0:
+        boolean = 1
+    else:
+        boolean = 0
+        zxxx = (-1) * zxxx
+    boolean2 = []
+    for g in groups_list:
+        if g[1] >= 0:
+            boolean2.append(1)
+        else:
+            boolean2.append(0)
+            g[1] = (-1) * g[1]
+    lst = zip(groups_list, boolean2)
+    context = {
+        "zxxx": zxxx,
+        "boolean": boolean,
+        "a": a,
+        "friend": friend,
+        "lst": lst,
+        "f": f
+        #'groups_list':groups_list
+    }
+    return HttpResponse(template.render(context, request))
+
+
+def get_balances(request):
+    me = request.user
+    template = loader.get_template("balances.html")
+    # g=request.session.get('group')
+    g = request.POST.get("groupid")
+    group = Group.objects.get(id=g)
+    print(group)
+    lst = Membership.objects.filter(group=group)
+    money = []
+    frnds_list = []
+    for l in lst:
+        if l.friend != me:
+            money.append([l.friend.username, l.money_owed, l.friend.id])
+            frnds_list.append(l.friend)
+    print(money)
+
+    money_friends = []
+    for f in frnds_list:
+        tlist = Transaction.objects.filter(group=group, lender=me, borrower=f)
+        amt = 0
+        for t in tlist:
+            amt = amt + t.amount
+        tlist = Transaction.objects.filter(group=g[0], lender=f, borrower=me)
+        for t in tlist:
+            amt = amt - t.amount
+            money_friends.append([f.username, amt, f.id])
+    print(money_friends)
+
+    x = ""
+    context = {"money": money, "money_friends": money_friends}
+    return HttpResponse(template.render(context, request))
 
 
 def transaction_form(request):
@@ -283,7 +489,7 @@ def transaction_form(request):
 
         else:
             for p in final_choices:
-                share_amt = shares[str(p[0])] / 100 * amt
+                share_amt = int(shares[str(p[0])]) / 100 * amt
                 user = User.objects.get(username=p[0])
                 t = Transaction(
                     group_transaction_id=Transaction.no_transactions,
@@ -298,11 +504,12 @@ def transaction_form(request):
                 t.save()
                 if user != payer:
                     f1 = Friend.objects.get(person1=payer, person2=user)
-                    x = f1.money_owed + share_amt
+                    print("first frnd:", f1)
+                    x = f1.money_owed + Decimal(share_amt)
                     f1.money_owed = x
                     f1.save()
                     f2 = Friend.objects.get(person1=user, person2=payer)
-                    y = f2.money_owed - share_amt
+                    y = f2.money_owed - Decimal(share_amt)
                     f2.money_owed = y
                     f2.save()
 
@@ -355,6 +562,43 @@ def delete_friend(request):
         response_data["result"] = "Success!"
         response_data["message"] = "Deleted successfully."
         return JsonResponse(response_data, status=200)
+
+
+def password_reset_request(request):
+    if request.method == "POST":
+        # password_reset_form = PasswordResetForm(request.POST)
+        # if password_reset_form.is_valid():
+        data = request.POST["email"]
+        associated_users = User.objects.filter(Q(email=data))
+        if associated_users.exists():
+            for user in associated_users:
+                subject = "Password Reset Requested"
+                # email_template_name = "/templates/password_reset_email.txt"
+                c = {
+                    "email": user.email,
+                    "domain": "127.0.0.1:8000",
+                    "site_name": "Website",
+                    "uid": urlsafe_base64_encode(force_bytes(user.pk)),
+                    "user": user,
+                    "token": default_token_generator.make_token(user),
+                    "protocol": "http",
+                }
+                # email = render_to_string(c)
+                try:
+                    send_mail(
+                        subject,
+                        user.email,
+                        "admin@example.com",
+                        [user.email],
+                        fail_silently=False,
+                    )
+                    response_data={}
+                    response_data["result"] = "Success!"
+                    response_data["message"] = "Sent successfully."
+                    print(response_data)
+                    return JsonResponse(response_data)
+                except BadHeaderError:
+                    return HttpResponse("Invalid header found.")
 
 
 # @csrf_exempt

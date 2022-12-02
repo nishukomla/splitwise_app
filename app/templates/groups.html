@@ -63,33 +63,31 @@
               </div>
             </div>
 
-<div class="card">
-  <div class="card-header">
-    <h6>Groups</h6>
-  </div>
-  <div class="card-body">
-    <div class="table-responsive">
-      <table
-        class="table friends-table table-bordered"
-        id="groupsdataTable"
-        width="100%"
-        cellspacing="0"
-      >
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th></th>
-          </tr>
-        </thead>
+            <div class="card">
+              <div class="card-header">
+                <h6>Groups</h6>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table
+                    class="table friends-table table-bordered"
+                    id="groupsdataTable"
+                    width="100%"
+                    cellspacing="0"
+                  >
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th></th>
+                      </tr>
+                    </thead>
 
-        <tbody>
-        </tbody>
-      </table>
-    </div>
+                    <tbody></tbody>
+                  </table>
+                </div>
 
-
-    <!-- {% for g,b in mylist.data %}
+                <!-- {% for g,b in mylist.data %}
     <tr>
         <td><a href="/splitwise/group/{{ g.group.id }}/">{{ g.name }}</a></td>
         {% if b == 1 %}
@@ -103,9 +101,8 @@
         </form></td>
     </tr>
     {% endfor %} -->
-  </div>
-</div>
-
+              </div>
+            </div>
           </div>
           <!-- /.container-fluid -->
         </div>
@@ -129,21 +126,30 @@
     <script src="/static/js/virtual-select.min.js"></script>
     <script>
       $(document).ready(function () {
-
-        var groupsdataTable= $("#groupsdataTable").DataTable({columns: [
-              { title: "Name" },
-              { title: "Status" },
+        var groupsdataTable = $("#groupsdataTable").DataTable({
+          columns: [
+            { title: "Name" },
+            { title: "Status" },
             {
-                data: null,
-                className:"dt-center editor-delete",
-                defaultContent: '<i class="fa fa-trash" style="cursor:pointer"/>',
-                orderable: false
-            }
+              data: null,
+              className: "dt-center editor-delete",
+              defaultContent: '<i class="fa fa-trash" style="cursor:pointer"/>',
+              orderable: false,
+            },
           ],
-      });
+        });
 
+        $("#groupsdataTable tbody").on("click", "tr", function () {
+          console.log("clicked:");
+          // if ($(this).hasClass('selected')) {
+          //     $(this).removeClass('selected');
+          // } else {
+          //   groupsdataTable.$('tr.selected').removeClass('selected');
+          //     $(this).addClass('selected');
+          // }
+        });
 
-      var selectedFrnds;
+        var selectedFrnds;
         getusersFriends();
         getGroups();
         function getusersFriends() {
@@ -167,7 +173,7 @@
             },
           });
         }
-        function getGroups(){
+        function getGroups() {
           let groupsarray;
           // getgroups
           $.ajax({
@@ -176,34 +182,39 @@
             data: { csrfmiddlewaretoken: "{{ csrf_token }}" },
             // on success
             success: function (response) {
-              console.log('response:',response);
-              groupsarray=response.data;
+              console.log("response:", response);
+              groupsarray = response.data;
               $.each(groupsarray, function (i) {
-                groupsdataTable.row.add([ groupsarray[i]['name'],  groupsarray[i]['money_owed']]).draw(false);
+                groupsdataTable.row
+                  .add([groupsarray[i]["name"], groupsarray[i]["money_owed"]])
+                  .draw(false);
               });
-              $('#groupsdataTable > tbody > tr > td.dt-center').css('text-align','center')
-
-            },})
+              $("#groupsdataTable > tbody > tr > td.dt-center").css(
+                "text-align",
+                "center"
+              );
+            },
+          });
         }
-      var text = [];
-      $("#grpFriends").on("change", function (e) {
-        var val = $(e.target).val();
-        text.push($(e.target).find("option:selected").text()); //only time the find is required
-        // var name = $(e.target).attr("name");
-        console.log("select tag values:", val, text, name);
-      });
-      document
-        .querySelector("#example-select")
-        .addEventListener("change", function () {
-          console.log('selected values:',this.value);
-          selectedFrnds=this.value;
-          // selectedFrnds.push(this.value[0]);
-          console.log('selected values:',selectedFrnds);
+        var text = [];
+        $("#grpFriends").on("change", function (e) {
+          var val = $(e.target).val();
+          text.push($(e.target).find("option:selected").text()); //only time the find is required
+          // var name = $(e.target).attr("name");
+          console.log("select tag values:", val, text, name);
         });
+        document
+          .querySelector("#example-select")
+          .addEventListener("change", function () {
+            console.log("selected values:", this.value);
+            selectedFrnds = this.value;
+            // selectedFrnds.push(this.value[0]);
+            console.log("selected values:", selectedFrnds);
+          });
 
-         // add group
+        // add group
 
-         $("#groupaddbtn").click(function () {
+        $("#groupaddbtn").click(function () {
           let group_name = $("#exampleGroupName");
           $.ajax({
             data: {

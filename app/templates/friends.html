@@ -69,6 +69,7 @@
                         <th>Email</th>
                         <th>Status</th>
                         <th></th>
+                        <th></th>
                       </tr>
                     </thead>
                     <!-- <tfoot>
@@ -109,6 +110,7 @@
 
     <script>
       $(document).ready(function () {
+        var current_friend;
        var friendsdataTable= $("#friendsdataTable").DataTable({columns: [
               { title: "Name" },
               { title: "Email" },
@@ -119,14 +121,14 @@
             //     defaultContent: '<i class="fa fa-pencil-alt" style="cursor:pointer"/>',
             //     orderable: false
             // },
+            { title: "", className:"individual-user" },
             {
                 data: null,
                 className:"dt-center editor-delete",
                 defaultContent: '<i class="fa fa-trash" style="cursor:pointer"/>',
                 orderable: false
-            }
-
-              // { title: "", "defaultContent": "<button onclick='edititem();'>Edit</button>" },
+            },
+              // { title: "", "defaultContent": "<button onclick='edititem();'>Show</button>" },
               // { title: "", "defaultContent": "<button onclick='deleteitem();'>Delete</button>" }
           ],
 });
@@ -167,7 +169,14 @@
               console.log("Friends list  " + response.result);
               optionsarray = response.result;
               $.each(optionsarray, function (i) {
-                friendsdataTable.row.add([ optionsarray[i][0],  optionsarray[i][1], optionsarray[i][3]]).draw(false);
+                let money_owed;
+                let button=`<button class='btn btn-primary' value='${optionsarray[i][2]}'>View</button>`;
+                if(optionsarray[i][4]==1){
+                  money_owed= `<font color="green">${optionsarray[i][3]}</font>`;
+                }else{
+                  money_owed= `<font color="red">${optionsarray[i][3]}</font>`;
+                }
+                friendsdataTable.row.add([ optionsarray[i][0],  optionsarray[i][1], money_owed,button]).draw(false);
               });
               $('#friendsdataTable > tbody > tr > td.dt-center').css('text-align','center')
              },
@@ -179,12 +188,27 @@
         var $this = $(this);
         var data = $('#friendsdataTable').DataTable().cell( $this ).data();
         console.log(data);
-
-        // friendsdataTable.edit( $(this).closest('tr'), {
-        //         title: 'Edit record',
-        //         buttons: 'Update'
-        //     } );
         } );
+        $('#friendsdataTable').on('click', 'td.individual-user', function (e) {
+          e.preventDefault();
+          let $this = $(this);
+          let btnhtml=$this.html();
+          console.log("usernames",$(btnhtml).attr('value'));
+          location.href = 'getIndividualFriend/'+$(btnhtml).attr('value');
+
+        });
+
+        $('#friendsdataTable tbody').on( 'click', 'tr', function () {
+
+          if ( $(this).hasClass('selected') ) {
+              $(this).removeClass('selected');
+          }
+          else {
+            $('#friendsdataTable').DataTable().$('tr.selected').removeClass('selected');
+              $(this).addClass('selected');
+          }
+
+        });
 
 
         // Delete a record

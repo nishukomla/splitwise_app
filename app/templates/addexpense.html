@@ -92,7 +92,7 @@
                       <input
                         class="col-md-6 form-check-input position-static"
                         type="radio"
-                        name="blankRadio1"
+                        name="myRadio"
                         id="splitRadio1"
                         value="equal"
                         aria-label="..."
@@ -100,7 +100,7 @@
                       <input
                         class="col-md-6 form-check-input position-static"
                         type="radio"
-                        name="blankRadio2"
+                        name="myRadio"
                         id="splitRadio2"
                         value="unequal"
                         aria-label="..."
@@ -164,6 +164,7 @@
         var paidFriends;
         var shareData = [];
         var currentUser;
+        var radioValue;
 
         $("#theTable").hide();
         getusersFriends();
@@ -240,6 +241,16 @@
             paidFriends = this.value;
           });
 
+        // $("input[type=radio]").on("change", function () {
+        //   let Moment = $("input[name=rad_group]").val();
+        //   console.log("my val is:", Moment);
+        // });
+
+        $('input[name="myRadio"]').on("change", function () {
+          radioValue = $('input[name="myRadio"]:checked').val();
+          // alert(radioValue);
+        });
+
         var optionsarray = [
           { key: "MOVIES", value: "Movies" },
           { key: "FOOD", value: "Food" },
@@ -286,7 +297,7 @@
               tag: $("#selectExpense").val(),
               description: $("#exampleDescription").val(),
               amount: $("#exampleAmount").val(),
-              split: "equal",
+              split: radioValue,
               shareData: JSON.stringify(shareData),
             }, // get the form data
             type: "POST", // GET or POST

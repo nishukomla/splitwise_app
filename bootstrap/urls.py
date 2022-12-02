@@ -37,6 +37,10 @@ urlpatterns = [
     path("getgroups",views.getGroups,name="getgroups"),
     path("addexpense",views.transaction_form,name="addexpense"),
     path("getCurrentUser",views.get_current_user,name="getCurrentUser"),
+    path("getbalances",views.get_balances,name="getbalances"),
+    path("getIndividualFriend/<str:f>/",views.friend,name="getIndividualFriend"),
+    path("password_reset", views.password_reset_request, name="password_reset"),
+
     # update_friend_data
     # getusersforFriendspage
     path("logout", views.user_logout, name="logout"),
