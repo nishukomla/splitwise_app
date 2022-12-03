@@ -121,17 +121,29 @@ href="/static/css/payments.css"/>
         if($("#username").val().length == ""){
             $.notifyBar({cssClass:'warning',html: 'Please enter the card holder name',});
         }else if($("#cardNumber").val().length==""){
-            $.notifyBar({cssClass:'warning',html: 'Please enter the card number',});
-        }else if($("#amount").val().length==""){
+            $.notifyBar({cssClass:'warning',html: 'Please enter the card number with 15 digit',});
+        }else if($("#cardNumber").val().length >=15){
+            $.notifyBar({cssClass:'warning',html: 'Please enter the card number with 15 digit',});
+        }
+        else if($("#amount").val().length==""){
             $.notifyBar({cssClass:'warning',html: 'Please enter the amount',});
         }else if($("#month").val().length==""){
             $.notifyBar({cssClass:'warning',html: 'Please enter the month',});
-        }else if($("#year").val().length==""){
+        }else if($("#month").val() >12){
+            $.notifyBar({cssClass:'warning',html: 'Please enter the month bw 1 to 12',});
+        }
+        else if($("#year").val().length==""){
             $.notifyBar({cssClass:'warning',html: 'Please enter the year',});
-        }else if($("#cvv").val().length==""){
+        }else if( $("#year").val().length>4){
+            $.notifyBar({cssClass:'warning',html: 'Please enter the year below or equal to 4 digit.',});
+        }
+        else if($("#cvv").val().length==""){
             $.notifyBar({cssClass:'warning',html: 'Please enter the Cvv',});
-        }else{
-            $.notifyBar({cssClass:'success',html: 'Payment successful',close:true});
+        }else if($("#cvv").val().length>3){
+            $.notifyBar({cssClass:'warning',html: 'Please enter the Cvv in 3 digit.',});
+        }
+        else{
+            $.notifyBar({cssClass:'success',html: 'Payment successful',close:true,delay:2000});
         }
     });
     });

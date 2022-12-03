@@ -344,7 +344,9 @@ def friend(request, f):
         f2.money_owed = 0
         f2.save()
         idx = str(friend.id)
-        return HttpResponse("payments.html")
+        # return HttpResponse("payments.html")
+        return render(request, "payments.html")
+
     template = loader.get_template("expanded_friend.html")
     print(zxxx)
     if zxxx >= 0:
