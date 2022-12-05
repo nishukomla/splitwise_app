@@ -27,19 +27,19 @@ urlpatterns = [
     path("<filename>.html", views.html),
     path("", views.index),
     path("registartion_form", views.registration_form, name="registartion_form"),
-    path("login_request", views.login_request, name="login_request"),
-    path("addfriend", views.add_friend_form, name="addfriend"),
+    path("login_request", views.login_request, name="login_request"), # type: ignore
+    path("addfriend", views.add_friend_form, name="addfriend"),# type: ignore
     path("getfriends", views.loop_friends, name="getfriends"),
     path("getusersforFriendspage", views.getusersforFriendspage, name="getusersforFriendspage"),
-    path("updatefriend", views.update_friend_data, name="updatefriend"),
-    path("deletefriend",views.delete_friend,name="deletefriend"),
-    path("addgroup",views.add_group,name="addgroup"),
+    path("updatefriend", views.update_friend_data, name="updatefriend"),# type: ignore
+    path("deletefriend",views.delete_friend,name="deletefriend"),# type: ignore
+    path("addgroup",views.add_group,name="addgroup"),# type: ignore
     path("getgroups",views.getGroups,name="getgroups"),
     path("addexpense",views.transaction_form,name="addexpense"),
     path("getCurrentUser",views.get_current_user,name="getCurrentUser"),
     path("getbalances",views.get_balances,name="getbalances"),
     path("getIndividualFriend/<str:f>/",views.friend,name="getIndividualFriend"),
-    path("password_reset", views.password_reset_request, name="password_reset"),
+    path("password_reset", views.password_reset_request, name="password_reset"),# type: ignore
 
     # update_friend_data
     # getusersforFriendspage

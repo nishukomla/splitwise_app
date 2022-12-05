@@ -1,1 +1,1 @@
-web: gunicorn spliwise_app.wsgi --log-file -
+web: gunicorn bootstrap.wsgi

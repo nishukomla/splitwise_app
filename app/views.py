@@ -1,5 +1,6 @@
 import email
-from tkinter import FLAT
+
+# from tkinter import FLAT
 from django import forms
 from django.views import generic
 from django.shortcuts import render, redirect
@@ -594,7 +595,7 @@ def password_reset_request(request):
                         [user.email],
                         fail_silently=False,
                     )
-                    response_data={}
+                    response_data = {}
                     response_data["result"] = "Success!"
                     response_data["message"] = "Sent successfully."
                     print(response_data)
