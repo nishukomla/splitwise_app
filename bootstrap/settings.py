@@ -29,7 +29,7 @@ SECRET_KEY = "django-insecure-=dcc-i=21%h)xa(cd6lc=xcaum^=0&)+0f&v4iay#hfev*yx@#
 DEBUG = True
 
 # ALLOWED_HOSTS = []
-ALLOWED_HOSTS = ["splitwisecu.herokuapp.com"]
+ALLOWED_HOSTS = ["splitwisecoventry.herokuapp.com"]
 
 
 # Application definition
