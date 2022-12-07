@@ -34,9 +34,10 @@ import pandas as pd
 
 
 def index(request):
-    # if request.user.is_anonymous:
-    #     return redirect("/login.html")l
-    return html(request, "index")
+    if request.user.is_anonymous:
+        return redirect("/login.html")
+    else:
+        return html(request, "index")
 
 
 def add_friend_form(request):
@@ -604,12 +605,9 @@ def password_reset_request(request):
                     return HttpResponse("Invalid header found.")
 
 
-# @csrf_exempt
 def registration_form(request):
-    print("request:", request.method, request.POST)
-    # form = NewUserForm()
     is_ajax = request.META.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest"
-    print("is ajax", is_ajax, request.POST)
+    # print("is ajax", is_ajax, request.POST)
     if request.method == "POST" and is_ajax:
         form = NewUserForm(request.POST)
         if form.is_valid():
@@ -620,7 +618,7 @@ def registration_form(request):
             errors = form.errors.as_json()
             return JsonResponse({"errors": errors}, status=400)
 
-    return render(request, "login.html", {"form": form})
+    return render(request, "login.html", {"form": form})  # type: ignore
 
 
 # @csrf_exempt

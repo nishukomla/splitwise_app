@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     {% include "head_part.html" %}
+    <link rel="stylesheet" href="/static/css/jquery.notifyBar.css">
   </head>
 
   <body class="bg-gradient-primary">
@@ -114,6 +115,8 @@
 
     <!-- Core plugin JavaScript-->
     <script src="/static/vendor/jquery-easing/jquery.easing.min.js"></script>
+    <script src="/static/js/jquery.notifyBar.js"></script>
+
 
     <!-- Custom scripts for all pages-->
     <script src="/static/js/sb-admin-2.min.js"></script>
@@ -200,6 +203,8 @@
               if(response!="Invalid"){
                 let url = "index.html";
                 $(location).attr("href", url);
+              }else{
+                $.notifyBar({cssClass:'error',html: 'Invalid user',close:true,delay:2000});
               }
               // let url = "index.html";
               //   $(location).attr("href", url);
