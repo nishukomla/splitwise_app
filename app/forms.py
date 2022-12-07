@@ -22,8 +22,10 @@ class NewUserForm(forms.ModelForm):
             user.save()
         return user
 
+
 class FriendForm(forms.Form):
-	friendname = forms.CharField(max_length=100,required=True)
+    friendname = forms.CharField(max_length=100, required=True)
+
 
 class GroupForm(forms.Form):
     # group_name = forms.CharField(label='Group name', max_length=100)
@@ -33,7 +35,6 @@ class GroupForm(forms.Form):
     # def current_frnd(self):
     #     friends = forms.MultipleChoiceField(choices=self.cleaned_data["username"])
     #     return friends
-
 
     # RANGE_SHORT = 's'
     # RANGE_MID = 'm'
@@ -50,11 +51,17 @@ class GroupForm(forms.Form):
     #     self.fields['friends'] = forms.MultipleChoiceField(
     #         choices=user
     #     )
-class ChangeForm(forms.Form):
-	friends = forms.MultipleChoiceField(choices=[])
 
-	def __init__(self, user, *args, **kwargs):
-		super(ChangeForm, self).__init__(*args, **kwargs)
-		self.fields['friends'] = forms.MultipleChoiceField(
-		choices=user
-		)
+
+class ChangeForm(forms.Form):
+    friends = forms.MultipleChoiceField(choices=[])
+
+    def __init__(self, user, *args, **kwargs):
+        super(ChangeForm, self).__init__(*args, **kwargs)
+        self.fields["friends"] = forms.MultipleChoiceField(choices=user)
+
+
+class ProfileUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ("image",)

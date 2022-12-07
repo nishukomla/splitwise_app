@@ -24,7 +24,7 @@ from django.db.models.query_utils import Q
 # from .forms import ContactForm
 from django.http import JsonResponse
 import json
-from .forms import FriendForm, GroupForm, NewUserForm, ChangeForm
+from .forms import FriendForm, GroupForm, NewUserForm, ChangeForm,ProfileUpdateForm
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from django.contrib.auth.forms import AuthenticationForm
@@ -740,12 +740,57 @@ def getnotification(request):
     me = request.user
     sent_messages = Message.objects.filter(person1=me).order_by('date')
     received_messages = Message.objects.filter(person2=me).order_by('date')
-    context={'sent_messages' : sent_messages,'received_messages' : received_messages}
-    data = serializers.serialize('json', received_messages)
-    return JsonResponse({"result":data},content_type="application/json")
-	# template = loader.get_template('notification.html')
-	# return(HttpResponse(template.render(context,request)))
+    print('received_messages',received_messages,'sent_messages',sent_messages)
+    data_received_messages = serializers.serialize('json', received_messages)
+    data_sent_messages = serializers.serialize('json', sent_messages)
+    context={'sent_messages' : data_sent_messages,'received_messages' : data_received_messages}
 
+    # month_list = [11, 3, 1, 10,12]
+
+    # rest=Transaction.objects.filter(*(Q(date__month=month) for month in month_list))
+    # print('test data:',rest)
+
+    return JsonResponse({"result":context},content_type="application/json")
+
+
+# def showallnotification():
+
+def showallnotification(request):
+	me = request.user
+	sent_messages = Message.objects.filter(person1=me).order_by('date')
+	received_messages = Message.objects.filter(person2=me).order_by('date')
+	context = {
+		'sent_messages' : sent_messages,
+		'received_messages' : received_messages
+	}
+	template = loader.get_template('notifications.html')
+	return(HttpResponse(template.render(context,request)))
+
+def showprofile(request):
+    edit_profile_form = ProfileUpdateForm()
+    template = loader.get_template('profile.html')
+    context = {
+		'edit_profile_form' : edit_profile_form,
+        }
+    return HttpResponse(template.render(context, request))
+
+
+def editprofile(request):
+    edit_profile_form = ProfileUpdateForm()
+    if request.method == 'POST':
+        if 'edit_profile' in request.POST:
+                # print(request.user.profile.bio)
+                edit_profile_form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user.profile)
+                if edit_profile_form.is_valid():
+                    edit_profile_form.save()
+                    #print(bio)
+    else:
+        edit_profile_form=ProfileUpdateForm()
+    template = loader.get_template('profile.html')
+    context = {
+		'edit_profile_form' : edit_profile_form,
+        }
+    return HttpResponse(template.render(context, request))
 
 def transaction_form(request):
     # me = User.objects.filter(id=request.user.id).values("username", "id").first()

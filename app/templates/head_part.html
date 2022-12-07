@@ -35,15 +35,28 @@
         data: { csrfmiddlewaretoken: "{{ csrf_token }}" },
         // on success
         success: function (response) {
-          console.log("recieved notifi:", JSON.parse(response.result));
-          let messages = JSON.parse(response.result);
+          console.log("recieved notifi:", JSON.parse(response.result.received_messages));
+          let messages = JSON.parse(response.result.received_messages);
           $(".badge").html(messages.length);
-          if (messages.lenght > 0) {
-            $.map(response, function (item, i) {
-              //   return { label: item.username, value: item.username };
-              //   $(".dropdown-item").html(response[i].message);
-              //   $(".dropdown-item .small").html(response[i].date);
+          if (messages.length > 0) {
+            $.map(messages, function (item, i) {
+             const dtform = new Date(item.fields["date"]).toDateString();
+             let notification=` <a class="dropdown-item d-flex align-items-center" href="#">
+                                    <div class="mr-3">
+                                        <div class="icon-circle bg-primary">
+                                            <i class="fas fa-file-alt text-white"></i>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="small text-gray-500">${dtform}</div>
+                                        <span class="font-weight-bold">${item.fields["message"]}</span>
+                                    </div>
+                </a>`;
+                $(".alertnotification").append(notification);
             });
+
+          }else{
+            $(".alertnotification").css({"font-size":"150%", "text-align":"center"}).html("No data.");
           }
         },
       });

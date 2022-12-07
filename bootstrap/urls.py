@@ -47,11 +47,17 @@ urlpatterns = [
     path('deletegroup/', views.deletegroup, name = 'deletegroup'),# type: ignore
     path('sendNotification/', views.sendNotification, name='sendNotification'),# type: ignore
     path('getnotification/', views.getnotification, name='getnotification'),# type: ignore
-
-    # getnotification
+    path('showallnotification/', views.showallnotification, name = 'showallnotification'),
+    path('editprofile/', views.editprofile, name = 'editprofile'),# type: ignore
+    path('showprofile/', views.showprofile, name = 'showprofile'),# type: ignore
+    # profile
     path("password_reset", views.password_reset_request, name="password_reset"),# type: ignore
 
     # update_friend_data
-    # getusersforFriendspage
+    # getusersforFriendspageimg-profile rounded-circle
     path("logout", views.user_logout, name="logout"),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL,
+                              document_root=settings.MEDIA_ROOT)
