@@ -24,7 +24,7 @@ from django.db.models.query_utils import Q
 # from .forms import ContactForm
 from django.http import JsonResponse
 import json
-from .forms import FriendForm, GroupForm, NewUserForm
+from .forms import FriendForm, GroupForm, NewUserForm, ChangeForm
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from django.contrib.auth.forms import AuthenticationForm
@@ -407,6 +407,344 @@ def get_balances(request):
     x = ""
     context = {"money": money, "money_friends": money_friends}
     return HttpResponse(template.render(context, request))
+
+
+def group(request, g):
+    print("test group:", request)
+    me = request.user
+    group = Group.objects.get(id=g)
+    all_transactions = Transaction.objects.filter(group=g).order_by("date")
+    no = group.no_transactions
+    ms = Membership.objects.filter(group=g)
+    frnd_list = ()
+    for m in ms:
+        if m.friend != me:
+            frnd_list = frnd_list + ((m.friend.username, m.friend.username),)
+    template = loader.get_template("expandedgroup.html")
+    x = ""
+    trans_list = []
+    request.session["group"] = g
+    for i in range(no):
+        if all_transactions.filter(group_transaction_id=i).exists():
+            ts = all_transactions.filter(group_transaction_id=i)
+            shares_list = []
+            paid_amt = 0
+            for t in ts:
+                date = [str(t.date)]
+                paid_by = [t.paid_by.username]
+                x = tag(t.tag)
+                tag1 = [x]
+                desc = [t.description]
+                contri = t.amount
+                paid_amt = paid_amt + contri
+                borrower = t.borrower.username
+                shares_list.append([borrower, contri])
+            lst = (date, paid_by, tag1, desc, shares_list, paid_amt)
+            trans_list.append(lst)
+
+    change_form = ChangeForm(frnd_list)
+    if request.method == "POST":
+        if "balances" in request.POST:
+            print("hi")
+        if "settle_up" in request.POST:
+            change_form = ChangeForm(frnd_list, request.POST)
+            if change_form.is_valid():
+                people = change_form.cleaned_data["friends"]
+                for p in people:
+                    f = User.objects.get(username=p)
+                    amt = 0
+                    if all_transactions.filter(lender=me, borrower=f).exists():
+                        ts = all_transactions.filter(lender=me, borrower=f)
+                        for t in ts:
+                            amt = amt + t.amount
+                    if all_transactions.filter(lender=f, borrower=me).exists():
+                        ts = all_transactions.filter(lender=f, borrower=me)
+                        for t in ts:
+                            amt = amt - t.amount
+                    if amt > 0:
+                        no = group.no_transactions
+                        t = Transaction(
+                            group=group,
+                            group_transaction_id=no,
+                            lender=f,
+                            borrower=me,
+                            description="Settling!",
+                            amount=amt,
+                            tag="st",
+                            added_by=me,
+                            paid_by=f,
+                        )
+                        t.save()
+                        m1 = Membership.objects.get(group=group, friend=me)
+                        z = m1.money_owed - amt
+                        m1.money_owed = z
+                        m1.save()
+                        m2 = Membership.objects.get(group=group, friend=f)
+                        z = m2.money_owed + amt
+                        m2.money_owed = z
+                        m2.save()
+                        f2 = Friend.objects.get(person1=me, person2=f)
+                        z = f2.money_owed - amt
+                        f2.money_owed = z
+                        f2.save()
+                        f1 = Friend.objects.get(person1=f, person2=me)
+                        z = f1.money_owed + amt
+                        f1.money_owed = z
+                        f1.save()
+                        z = group.no_transactions + 1
+                        group.no_transactions = z
+                        group.save()
+                    elif amt < 0:
+                        no = group.no_transactions
+                        t = Transaction(
+                            group=group,
+                            group_transaction_id=no,
+                            lender=me,
+                            borrower=f,
+                            description="Settling!",
+                            amount=-1 * amt,
+                            tag="st",
+                            added_by=me,
+                            paid_by=me,
+                        )
+                        t.save()
+                        m1 = Membership.objects.get(group=group, friend=me)
+                        z = m1.money_owed + (-1 * amt)
+                        m1.money_owed = z
+                        m1.save()
+                        m2 = Membership.objects.get(group=group, friend=f)
+                        z = m2.money_owed - (-1 * amt)
+                        m2.money_owed = z
+                        m2.save()
+                        f2 = Friend.objects.get(person1=me, person2=f)
+                        z = f2.money_owed + (-1 * amt)
+                        f2.money_owed = z
+                        f2.save()
+                        f1 = Friend.objects.get(person1=f, person2=me)
+                        z = f1.money_owed - (-1 * amt)
+                        f1.money_owed = z
+                        f1.save()
+                        z = group.no_transactions + 1
+                        group.no_transactions = z
+                        group.save()
+                    else:
+                        pass
+                return HttpResponseRedirect("/splitwise/success/")
+
+    else:
+        change_form = ChangeForm(frnd_list)
+    context = {"trans_list": trans_list, "g": g, "change_form": change_form}
+
+    return HttpResponse(template.render(context, request))
+
+
+def activity_tab(request):
+    me = request.user
+    template = loader.get_template("activity_tab.html")
+    x = Transaction.objects.filter(Q(lender=me) | Q(borrower=me)).order_by("-date")
+    a = 0
+    print(len(x))
+    i = 0
+    desc = []
+    money = []
+    additional_info = []
+    transactions = []
+    boolean = []
+    no_of_activities = 0
+    exit = False
+    while i < len(x):
+        # print(x[i])
+        if x[i].lender == me and x[i].borrower == me:
+            i = i + 1
+        else:
+            if x[i].lender == me:
+                money.append(x[i].amount)
+            else:
+                money.append((-1) * x[i].amount)
+
+            desc.append(x[i].description)
+            transactions.append(x[i])
+            if x[i].group_id is None:
+                additional_info.append(
+                    "group does not exist xxxxxxwkebjkerjbkjengksdbkejbg"
+                )
+            else:
+                additional_info.append(x[i].group.group_name)
+            j = i + 1
+            if j >= len(x):
+                exit = True
+                break
+                # print(j)
+            while (
+                x[j].group_id == x[i].group_id
+                and x[j].group_transaction_id == x[i].group_transaction_id
+            ):
+                if j < len(x):
+                    if x[j].lender == me and x[j].borrower == me:
+                        j = j + 1
+                        if j >= len(x):
+                            exit = True
+                            break
+                        pass
+                    else:
+                        if x[j].lender == me:
+                            money[no_of_activities] += x[j].amount
+                        else:
+                            money[no_of_activities] -= x[j].amount
+                        j = j + 1
+                        if j >= len(x):
+                            exit = True
+                            break
+                else:
+                    exit = True
+                    break
+            i = j
+            no_of_activities = no_of_activities + 1
+            if exit == True:
+                break
+    # for i in range(len(desc)):
+    # print(str(desc[i])+" "+str(money[i]))
+    # print(x.transaction
+    # send_list = [desc, money]#, additional_info]
+    for i in range(len(money)):
+        if money[i] >= 0:
+            boolean.append(1)
+        else:
+            boolean.append(0)
+            money[i] = -1 * money[i]
+    send_list = zip(money, desc, additional_info, transactions, boolean)
+    # print(send_list)
+    context = {"send_list": send_list}
+    return HttpResponse(template.render(context, request))
+
+
+def detailed_activity1(request, i):
+    y = Transaction.objects.filter(group=None, group_transaction_id=i)
+    # print(y)
+    person = []
+    share = []
+    payer = ""
+    total_amount = 0
+    print(len(y))
+    if len(y) == 1:
+        payer = y[0].lender.username
+        total_amount = y[0].amount
+        person.append(y[0].borrower.username)
+        share.append(total_amount)
+    else:
+        for z in y:
+            person.append(z.borrower.username)
+            share.append(z.amount)
+            total_amount = total_amount + z.amount
+            if z.lender.username == z.borrower.username:
+                payer = z.lender.username
+    lst = zip(person, share)
+    context = {"lst": lst, "payer": payer, "total_amount": total_amount}
+    template = loader.get_template("expanded_activity.html")
+    return HttpResponse(template.render(context, request))
+    # return HttpResponse('success')
+
+
+def detailed_activity2(request, i, j):
+    x = Group.objects.get(id=i)
+    y = Transaction.objects.filter(group=x, group_transaction_id=j)
+    # print(y)
+    person = []
+    share = []
+    payer = ""
+    total_amount = 0
+    for z in y:
+        person.append(z.borrower.username)
+        share.append(z.amount)
+        total_amount = total_amount + z.amount
+        if z.lender.username == z.borrower.username:
+            payer = z.lender.username
+    lst = zip(person, share)
+    context = {"lst": lst, "payer": payer, "total_amount": total_amount}
+    template = loader.get_template("expanded_activity.html")
+    return HttpResponse(template.render(context, request))
+
+
+def deletegroup(request):
+    if request.method == "POST":
+        for g in Group.objects.all():
+            print('Group new:',g,request.POST,g.group_name)
+            if g.group_name == request.POST.get("group_name"):
+                money = 0
+                m = Membership.objects.filter(group=g)
+                for x in m:
+                    if x.money_owed != 0:
+                        money = 1
+                if money == 0:
+                    g.delete()
+                    context = {"status": "Success!","Message":"Deleted successfully."}
+                    return JsonResponse({"result": context})
+                else :
+                    context = {"status": "Failed!","Message":"Failed to delete."}
+                    return JsonResponse({"result": context})
+
+
+
+def balances(request):
+    if request.user.is_authenticated:
+        me = request.user
+        template = loader.get_template("balances.html")
+        g = request.session.get("group")
+        group = Group.objects.get(id=g)
+        print(group, g)
+        lst = Membership.objects.filter(group=group)
+        money = []
+        frnds_list = []
+        for l in lst:
+            if l.friend != me:
+                money.append([l.friend.username, l.money_owed, l.friend.id])
+                frnds_list.append(l.friend)
+        print(money)
+
+        money_friends = []
+        for f in frnds_list:
+            tlist = Transaction.objects.filter(group=group, lender=me, borrower=f)
+            amt = 0
+            for t in tlist:
+                amt = amt + t.amount
+            tlist = Transaction.objects.filter(group=g[0], lender=f, borrower=me)
+            for t in tlist:
+                amt = amt - t.amount
+            money_friends.append([f.username, amt, f.id])
+        print(money_friends)
+
+        x = ""
+        context = {"money": money, "money_friends": money_friends}
+        return HttpResponse(template.render(context, request))
+    else:
+        # return JsonResponse({"result": context})
+        return render(request, "404.html")
+
+def sendNotification(request):
+    me = User.objects.get(username=request.user.get_username())
+    other = User.objects.get(id=request.POST["frndId"])
+    if request.method == 'POST':
+                    print('f')
+                    message1 = request.POST['message']
+                    print(message1)
+                    mess = Message(person1=me, person2=other, message=message1)
+                    mess.save()
+                    context = {"status": "Success!", "message": "Notification sent successfully."}
+                    return JsonResponse({"result":context })
+    else:
+        context = {"status": "Fail!", "message": "Failed to send notification."}
+        return JsonResponse({"result":context })
+
+
+def getnotification(request):
+    me = request.user
+    sent_messages = Message.objects.filter(person1=me).order_by('date')
+    received_messages = Message.objects.filter(person2=me).order_by('date')
+    context={'sent_messages' : sent_messages,'received_messages' : received_messages}
+    data = serializers.serialize('json', received_messages)
+    return JsonResponse({"result":data},content_type="application/json")
+	# template = loader.get_template('notification.html')
+	# return(HttpResponse(template.render(context,request)))
 
 
 def transaction_form(request):

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {% include "head_part.html" %}
+  </head>
+
+  <body id="page-top">
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+      {% include "sidebar_part.html" %}
+      <!-- Content Wrapper -->
+      <div id="content-wrapper" class="d-flex flex-column">
+        <!-- Main Content -->
+        <div id="">
+          {% include "topbar_part.html" %}
+          <!-- Begin Page Content -->
+          <div class="container-fluid">
+            <h1>Group</h1>
+            <form action="/payments.html" method="POST">
+              {% csrf_token %} {{ change_form }}
+              <input type="submit" value="Settle Up" name="settle_up" />
+            </form>
+            <form action="/balances/" method="POST">
+              {% csrf_token %}
+              <input type="submit" value="Balances" name="balances" />
+            </form>
+            <a href="/addexpense.html"><h3>Add Expense</h3></a>
+            <br />
+            <h2>Transactions</h2>
+            {% for a,b,c,d,e,z in trans_list %}
+            <table>
+              <tr>
+                Date:{{ a.0 }}
+              </tr>
+              <br />
+              <tr>
+                Description: {{ d.0 }}
+              </tr>
+              <br />
+              <tr>
+                Tag: {{ c.0 }}
+              </tr>
+              <br />
+              {% if c.0 != 'Settle' %}
+              <tr>
+                {{ b.0 }} paid {{ z }}
+              </tr>
+              <br />
+
+              {% for f in e %}
+              <tr>
+                {{ f.0 }} owes {{ f.1 }}
+              </tr>
+              <br />
+              {% endfor %} {% else %} {% for f in e %}
+              <tr>
+                {{ b.0 }} paid {{ z }} to {{ f.0 }}
+              </tr>
+              <br />
+              {% endfor %} {% endif %}
+            </table>
+            <br /><br />
+            {% endfor %}
+            <a href="/groups.html">Go back</a>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

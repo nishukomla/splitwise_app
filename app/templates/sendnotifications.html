@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {% include "head_part.html" %}
+    <link rel="stylesheet" href="/static/css/jquery.notifyBar.css">
+  </head>
+
+  <body id="page-top">
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+      {% include "sidebar_part.html" %}
+      <!-- Content Wrapper -->
+      <div id="content-wrapper" class="d-flex flex-column">
+        <!-- Main Content -->
+        <div id="content">
+          {% include "topbar_part.html" %}
+          <!-- Begin Page Content -->
+          <div class="container-fluid">
+            <!-- Page Heading -->
+            <h1 class="h3 mb-4 text-gray-800">Send Notification</h1>
+            <form>
+              {% csrf_token %}
+              <div class="row">
+                <label>Select Friend</label>
+                <select
+                  class="form-control"
+                  id="exampleFormControlSelect1"
+                ></select>
+              </div>
+              <div class="row">
+                <label>Message</label>
+                <textarea
+                  class="form-control"
+                  placeholder="message"
+                  id="exampleFormControlTextarea1"
+                  rows="3"
+                ></textarea>
+              </div>
+              <div class="row" style="padding: 10px 0px">
+                <button type="button" id="sendbtn" class="btn btn-primary">Send</button>
+              </div>
+            </form>
+          </div>
+          <!-- /.container-fluid -->
+        </div>
+        <!-- End of Main Content -->
+
+        {% include "footer_part.html" %}
+      </div>
+      <!-- End of Content Wrapper -->
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+      <i class="fas fa-angle-up"></i>
+    </a>
+
+    {% include "modals_and_scripts_part.html" %}
+    <script src="/static/js/jquery.notifyBar.js"></script>
+    <script>
+      $(document).ready(function () {
+        getusersFriends();
+        function getusersFriends() {
+          let optionsarray;
+          $.ajax({
+            type: "POST", // GET or POST
+            url: "{% url 'getusersforFriendspage' %}",
+            data: { csrfmiddlewaretoken: "{{ csrf_token }}" },
+            // on success
+            success: function (response) {
+              optionsarray = response.result;
+              var seloption = "";
+              $.each(optionsarray, function (i) {
+                seloption +=
+                  '<option value="' +
+                  optionsarray[i].id +
+                  '">' +
+                  optionsarray[i].username +
+                  "</option>";
+              });
+              $("#exampleFormControlSelect1").append(seloption);
+            },
+          });
+        }
+        $("#sendbtn").click(function () {
+          let group_name = $("#exampleGroupName");
+          $.ajax({
+            data: {
+              csrfmiddlewaretoken: "{{ csrf_token }}",
+              message: $("#exampleFormControlTextarea1").val(),
+              frndId: $("#exampleFormControlSelect1").val(),
+            }, // get the form data
+            type: "POST", // GET or POST
+            url: "{% url 'sendNotification' %}",
+            success: function (response) {
+              console.log("grps data:", response);
+              if(response.result.status=="Success!"){
+                $.notifyBar({cssClass:'success',html: response.result.message,delay:1000});
+                setTimeout(() => {
+                  window.location.reload(true);
+                }, 2000);
+              }else{
+                $.notifyBar({cssClass:'error',html: response.result.message,delay:1000});
+              }
+            },});
+        });
+
+      });
+    </script>
+  </body>
+</html>

@@ -7,6 +7,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/static/css/virtual-select.min.css" />
+    <link rel="stylesheet" href="/static/css/jquery.notifyBar.css">
   </head>
 
   <body id="page-top">
@@ -124,29 +125,60 @@
     <script src="/static/vendor/datatables/jquery.dataTables.min.js"></script>
     <script src="/static/vendor/datatables/dataTables.bootstrap4.min.js"></script>
     <script src="/static/js/virtual-select.min.js"></script>
+    <script src="/static/js/jquery.notifyBar.js"></script>
+
     <script>
       $(document).ready(function () {
         var groupsdataTable = $("#groupsdataTable").DataTable({
           columns: [
             { title: "Name" },
             { title: "Status" },
-            {
-              data: null,
-              className: "dt-center editor-delete",
-              defaultContent: '<i class="fa fa-trash" style="cursor:pointer"/>',
-              orderable: false,
-            },
+            {title:"" ,className:"editor-delete"}
+            // {
+            //   data: null,
+            //   className: "dt-center editor-delete",
+            //   defaultContent: '<i class="fa fa-trash" style="cursor:pointer"/>',
+            //   orderable: false,
+            // },
           ],
         });
 
         $("#groupsdataTable tbody").on("click", "tr", function () {
-          console.log("clicked:");
-          // if ($(this).hasClass('selected')) {
-          //     $(this).removeClass('selected');
-          // } else {
+          console.log("clicked:",$(this).html());
+          // if ($(this).hasClass('td.editor-delete')) {
+          //   console.log("new clicked:",$(this).html());
+          // }
+          //  else {
           //   groupsdataTable.$('tr.selected').removeClass('selected');
           //     $(this).addClass('selected');
           // }
+        });
+
+        $('#groupsdataTable').on('click', 'td.editor-delete', function (e) {
+          e.preventDefault();
+          let $this = $(this);
+          let btnhtml=$this.html();
+          console.log("id of grp:",$(btnhtml).attr('name'),$(btnhtml).attr('id'));
+          // location.href = 'getIndividualFriend/'+$(btnhtml).attr('value');
+
+          $.ajax({
+            type: "POST", // GET or POST
+            url: "{% url 'deletegroup' %}",
+            data: { csrfmiddlewaretoken: "{{ csrf_token }}",group_name:$(btnhtml).attr('name') },
+            // on success
+            success: function (response) {
+              if(response.result.status=="Success!"){
+                $.notifyBar({cssClass:'success',html: response.result.Message,close:true,delay:2000});
+                setTimeout(() => {
+                  window.location.reload(true);
+                }, 2000);
+
+              }else{
+                $.notifyBar({cssClass:'error',html: response.result.Message,close:true,delay:2000});
+              }
+
+            },});
+
         });
 
         var selectedFrnds;
@@ -174,7 +206,7 @@
           });
         }
         function getGroups() {
-          let groupsarray;
+          let groupsarray=[];
           // getgroups
           $.ajax({
             type: "POST", // GET or POST
@@ -185,8 +217,10 @@
               console.log("response:", response);
               groupsarray = response.data;
               $.each(groupsarray, function (i) {
+               let tempurl= "<a href='group/"+groupsarray[i]['id']+"'>"+groupsarray[i]["name"]+"</a>";
+               let trashBtn='<i class="fa fa-trash" name="'+groupsarray[i]['name']+'" id="'+groupsarray[i]['id']+'" style="cursor:pointer"/>'
                 groupsdataTable.row
-                  .add([groupsarray[i]["name"], groupsarray[i]["money_owed"]])
+                  .add([tempurl, groupsarray[i]["money_owed"],trashBtn])
                   .draw(false);
               });
               $("#groupsdataTable > tbody > tr > td.dt-center").css(
@@ -226,6 +260,13 @@
             url: "{% url 'addgroup' %}",
             success: function (response) {
               console.log("grps data:", response);
+              if(response.result=="Success!"){
+                $.notifyBar({cssClass:'success',html: "Group added successfully",delay:1000});
+                setTimeout(() => {
+                  window.location.reload(true);
+                }, 2000);              }else{
+                $.notifyBar({cssClass:'error',html: "Failed to add group!",delay:1000});
+              }
             },
           });
         });

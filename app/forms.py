@@ -50,3 +50,11 @@ class GroupForm(forms.Form):
     #     self.fields['friends'] = forms.MultipleChoiceField(
     #         choices=user
     #     )
+class ChangeForm(forms.Form):
+	friends = forms.MultipleChoiceField(choices=[])
+
+	def __init__(self, user, *args, **kwargs):
+		super(ChangeForm, self).__init__(*args, **kwargs)
+		self.fields['friends'] = forms.MultipleChoiceField(
+		choices=user
+		)

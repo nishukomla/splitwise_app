@@ -39,6 +39,16 @@ urlpatterns = [
     path("getCurrentUser",views.get_current_user,name="getCurrentUser"),
     path("getbalances",views.get_balances,name="getbalances"),
     path("getIndividualFriend/<str:f>/",views.friend,name="getIndividualFriend"),
+    path('activity_tab/', views.activity_tab, name='activity_tab'),
+    path('detailed_activity/<str:i>/',views.detailed_activity1, name='detailed_activity'),
+    path('detailed_activity/<str:i>/<str:j>/',views.detailed_activity2, name='detailed_activity'),
+    path('group/<str:g>/', views.group, name='group'),
+    path('balances/',views.balances, name='balances'),
+    path('deletegroup/', views.deletegroup, name = 'deletegroup'),# type: ignore
+    path('sendNotification/', views.sendNotification, name='sendNotification'),# type: ignore
+    path('getnotification/', views.getnotification, name='getnotification'),# type: ignore
+
+    # getnotification
     path("password_reset", views.password_reset_request, name="password_reset"),# type: ignore
 
     # update_friend_data

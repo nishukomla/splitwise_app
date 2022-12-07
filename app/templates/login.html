@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     {% include "head_part.html" %}
-    <link rel="stylesheet" href="/static/css/jquery.notifyBar.css">
+    <link rel="stylesheet" href="/static/css/jquery.notifyBar.css" />
   </head>
 
   <body class="bg-gradient-primary">
@@ -18,7 +18,7 @@
                 <div class="col-lg-12">
                   <div class="p-5">
                     <div class="text-center">
-                      <h1 class="h4 text-gray-900 mb-4">Welcome Back!</h1>
+                      <h1 class="h4 text-gray-900 mb-4">Splitwise Login</h1>
                     </div>
                     <form class="user" id="loginForm" method="post">
                       {% csrf_token %}
@@ -30,10 +30,9 @@
                           aria-describedby="usernameHelp"
                           placeholder="Enter username..."
                         />
-                        <span id="usercheck" style="color: red;">
+                        <span id="usercheck" style="color: red">
                           **Username is missing
                         </span>
-
                       </div>
                       <div class="form-group">
                         <input
@@ -43,7 +42,7 @@
                           id="exampleInputPassword"
                           placeholder="Password"
                         />
-                        <span id="passcheck" style="color: red;">
+                        <span id="passcheck" style="color: red">
                           **Please Fill the password
                         </span>
                       </div>
@@ -117,7 +116,6 @@
     <script src="/static/vendor/jquery-easing/jquery.easing.min.js"></script>
     <script src="/static/js/jquery.notifyBar.js"></script>
 
-
     <!-- Custom scripts for all pages-->
     <script src="/static/js/sb-admin-2.min.js"></script>
 
@@ -140,7 +138,9 @@
             return false;
           } else if (usernameValue.length < 3 || usernameValue.length > 10) {
             $("#usercheck").show();
-            $("#usercheck").html("**length of username must be between 3 and 10");
+            $("#usercheck").html(
+              "**length of username must be between 3 and 10"
+            );
             usernameError = false;
             return false;
           } else {
@@ -173,51 +173,51 @@
           }
         }
 
-
-
         $("#loginForm").submit(function () {
           let contact_username = $("#exampleInputUsername");
           let password = $("#exampleInputPassword");
           validateUsername();
           validatePassword();
-          if (
-      usernameError == true &&
-      passwordError == true
-    ) {
-      return true;
-    } else {
-          // create an AJAX call
-          $.ajax({
-            data: {
-              //   email: contact_email.val(),
-              csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
-              username: contact_username.val(),
-              password: password.val(),
-            }, // get the form data
-            type: $(this).attr("method"), // GET or POST
-            url: "{% url 'login_request' %}",
+          if (usernameError == true && passwordError == true) {
+            return true;
+          } else {
+            // create an AJAX call
+            $.ajax({
+              data: {
+                //   email: contact_email.val(),
+                csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+                username: contact_username.val(),
+                password: password.val(),
+              }, // get the form data
+              type: $(this).attr("method"), // GET or POST
+              url: "{% url 'login_request' %}",
 
-            // on success
-            success: function (response) {
-              console.log("Thankyou for reaching us out " + response);
-              if(response!="Invalid"){
-                let url = "index.html";
-                $(location).attr("href", url);
-              }else{
-                $.notifyBar({cssClass:'error',html: 'Invalid user',close:true,delay:2000});
-              }
-              // let url = "index.html";
-              //   $(location).attr("href", url);
-            },
-            // on error
-            error: function (response) {
-              // alert the error if any error occured
-              alert(response.responseJSON.errors);
-              console.log(response.responseJSON.errors);
-            },
-          });
-          return false;
-        };
+              // on success
+              success: function (response) {
+                console.log("Thankyou for reaching us out " + response);
+                if (response != "Invalid") {
+                  let url = "index.html";
+                  $(location).attr("href", url);
+                } else {
+                  $.notifyBar({
+                    cssClass: "error",
+                    html: "Invalid user",
+                    close: true,
+                    delay: 2000,
+                  });
+                }
+                // let url = "index.html";
+                //   $(location).attr("href", url);
+              },
+              // on error
+              error: function (response) {
+                // alert the error if any error occured
+                alert(response.responseJSON.errors);
+                console.log(response.responseJSON.errors);
+              },
+            });
+            return false;
+          }
         });
       });
     </script>

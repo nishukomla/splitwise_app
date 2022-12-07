@@ -17,6 +17,33 @@
           <div class="container-fluid">
             <!-- Page Heading -->
             <h1 class="h3 mb-4 text-gray-800">Balances Page</h1>
+            <h1>Balances</h1>
+            <table>
+              <tr>
+                <th>Friend</th>
+                <th>Balance with me</th>
+              </tr>
+              {% for f,m ,id in money_friends %}
+              <tr>
+                <td><a href="/getIndividualFriend/{{ id }}">{{ f }}</a></td>
+
+                <td>{{ m }}</td>
+              </tr>
+              {% endfor %}
+            </table>
+            <br />
+            <table>
+              <tr>
+                <th>Person</th>
+                <th>Balance with group</th>
+              </tr>
+              {% for f,m,id in money %}
+              <tr>
+                <td><a href="/getIndividualFriend/{{ id }}">{{ f }}</a></td>
+                <td>{{ m }}</td>
+              </tr>
+              {% endfor %}
+            </table>
           </div>
           <!-- /.container-fluid -->
         </div>
@@ -41,12 +68,11 @@
         function getbalances() {
           $.ajax({
             type: "POST", // GET or POST
-            url: "{% url 'get_balances' %}",
+            url: "{% url 'balances' %}",
             data: { csrfmiddlewaretoken: "{{ csrf_token }}" },
             // on success
-            success: function (response) {
-
-            },});
+            success: function (response) {},
+          });
         }
       });
     </script>
