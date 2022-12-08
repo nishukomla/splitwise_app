@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {% include "head_part.html" %}
+  </head>
+
+  <body id="page-top">
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+      {% include "sidebar_part.html" %}
+      <!-- Content Wrapper -->
+      <div id="content-wrapper" class="d-flex flex-column">
+        <!-- Main Content -->
+        <div id="content">
+          {% include "topbar_part.html" %}
+          <!-- Begin Page Content -->
+          <div class="container-fluid">
+            <!-- Page Heading -->
+            <h1 class="h3 mb-4 text-gray-800">Balances Page</h1>
+            <h1>Balances</h1>
+            <table>
+              <tr>
+                <th>Friend</th>
+                <th>Balance with me</th>
+              </tr>
+              {% for f,m ,id in money_friends %}
+              <tr>
+                <td><a href="/getIndividualFriend/{{ id }}">{{ f }}</a></td>
+
+                <td>{{ m }}</td>
+              </tr>
+              {% endfor %}
+            </table>
+            <br />
+            <table>
+              <tr>
+                <th>Person</th>
+                <th>Balance with group</th>
+              </tr>
+              {% for f,m,id in money %}
+              <tr>
+                <td><a href="/getIndividualFriend/{{ id }}">{{ f }}</a></td>
+                <td>{{ m }}</td>
+              </tr>
+              {% endfor %}
+            </table>
+          </div>
+          <!-- /.container-fluid -->
+        </div>
+        <!-- End of Main Content -->
+
+        {% include "footer_part.html" %}
+      </div>
+      <!-- End of Content Wrapper -->
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+      <i class="fas fa-angle-up"></i>
+    </a>
+
+    {% include "modals_and_scripts_part.html" %}
+
+    <script>
+      $(document).ready(function () {
+        getbalances();
+        function getbalances() {
+          $.ajax({
+            type: "POST", // GET or POST
+            url: "{% url 'balances' %}",
+            data: { csrfmiddlewaretoken: "{{ csrf_token }}" },
+            // on success
+            success: function (response) {},
+          });
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {% include "head_part.html" %}
+    <link
+      href="/static/vendor/datatables/dataTables.bootstrap4.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/css/virtual-select.min.css" />
+    <link rel="stylesheet" href="/static/css/jquery.notifyBar.css">
+  </head>
+
+  <body id="page-top">
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+      {% include "sidebar_part.html" %}
+      <!-- Content Wrapper -->
+      <div id="content-wrapper" class="d-flex flex-column">
+        <!-- Main Content -->
+        <div id="content">
+          {% include "topbar_part.html" %}
+          <!-- Begin Page Content -->
+          <div class="container-fluid">
+            <!-- Page Heading -->
+            <h1 class="h3 mb-4 text-gray-800">Transaction</h1>
+
+            <form class="user" method="post">
+              {% csrf_token %}
+              <div class="form-group row">
+                <div class="col-md-5">
+                  <div style="max-width: 100%" id="transaction-select"></div>
+                </div>
+                <div class="col-md-2">
+                  <button
+                    id="groupaddbtn"
+                    type="button"
+                    class="btn btn-primary"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            </form>
+            <div class="card shadow mb-4">
+              <div class="card-header py-3">
+                <div class="row">
+                  <div class="col-md-10">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                      Add Transaction
+                    </h6>
+                  </div>
+                  <div class="col-md-2">
+                    <button
+                      id="addExpense"
+                      type="button"
+                      class="btn btn-primary"
+                    >
+                      Submit
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="card-body">
+                <!-- test data form -->
+                <div class="row" style="margin-bottom: 10px">
+                  <div class="col-md-6">
+                    <label for="exampleTransaction">Who paid</label>
+                    <div style="max-width: 100%" id="paid-select"></div>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="exampleDescription">Description</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="exampleDescription"
+                      placeholder="Description"
+                    />
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <label for="exampleFormControlInput1">Amount</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="exampleAmount"
+                      placeholder="Amount"
+                    />
+                  </div>
+                  <div class="col-md-6">
+                    <label for="exampleSplit">Split</label>
+                    <div class="form-check row">
+                      <input
+                        class="col-md-6 form-check-input position-static"
+                        type="radio"
+                        name="myRadio"
+                        id="splitRadio1"
+                        value="equal"
+                        aria-label="..."
+                      />Split Equally
+                      <input
+                        class="col-md-6 form-check-input position-static"
+                        type="radio"
+                        name="myRadio"
+                        id="splitRadio2"
+                        value="unequal"
+                        aria-label="..."
+                      />Split Unequally
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <label for="exampleFormControlInput1">Tag</label>
+                    <select id="selectExpense" class="custom-select">
+                      <option selected disabled class="text-hide">
+                        Select Category
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                <table
+                  id="theTable"
+                  class="table table-bordered"
+                  style="margin-top: 15px"
+                >
+                  <thead>
+                    <tr>
+                      <th scope="col">#</th>
+                      <th scope="col">Name</th>
+                      <th scope="col">Share (%)</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <!-- /.container-fluid -->
+        </div>
+        <!-- End of Main Content -->
+
+        {% include "footer_part.html" %}
+      </div>
+      <!-- End of Content Wrapper -->
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+      <i class="fas fa-angle-up"></i>
+    </a>
+
+    {% include "modals_and_scripts_part.html" %}
+
+    <!-- page level scripts -->
+    <script src="/static/vendor/datatables/jquery.dataTables.min.js"></script>
+    <script src="/static/vendor/datatables/dataTables.bootstrap4.min.js"></script>
+    <script src="/static/js/virtual-select.min.js"></script>
+    <script src="/static/js/jquery.notifyBar.js"></script>
+    <!-- end -->
+    <script>
+      $(document).ready(function () {
+        var selectedFrnds;
+        var paidFriends;
+        var shareData = [];
+        var currentUser;
+        var radioValue;
+
+        $("#theTable").hide();
+        getusersFriends();
+        getCurrentUser();
+        function getCurrentUser() {
+          $.ajax({
+            type: "POST", // GET or POST
+            url: "{% url 'getCurrentUser' %}",
+            data: { csrfmiddlewaretoken: "{{ csrf_token }}" },
+            // on success
+            success: function (response) {
+              console.log("cuurent user obj:", response.result);
+              currentUser = response.result[0];
+              selectedFrnds = currentUser.username;
+            },
+          });
+
+          // getCurrentUser
+        }
+        function getusersFriends() {
+          $.ajax({
+            type: "POST", // GET or POST
+            url: "{% url 'getusersforFriendspage' %}",
+            data: { csrfmiddlewaretoken: "{{ csrf_token }}" },
+            // on success
+            success: function (response) {
+              console.log("result:", response.result);
+              var $grpfrndOptions = $.map(response.result, function (item, i) {
+                return { label: item.username, value: item.username };
+              });
+              console.log(Array.from($grpfrndOptions), $grpfrndOptions);
+              VirtualSelect.init({
+                ele: "#transaction-select",
+                options: $grpfrndOptions,
+                multiple: true,
+                search: true,
+              });
+              VirtualSelect.init({
+                ele: "#paid-select",
+                options: $grpfrndOptions,
+                multiple: true,
+                search: true,
+              });
+              // paid-select
+            },
+          });
+        }
+
+        document
+          .querySelector("#transaction-select")
+          .addEventListener("change", function () {
+            selectedFrnds = this.value;
+            index1 = selectedFrnds.findIndex((x) => x === currentUser.username);
+            if (index1 == -1) selectedFrnds.splice(0, 0, currentUser.username);
+            console.log("selected values:", selectedFrnds);
+            if (selectedFrnds.length > 0) {
+              $("#theTable tbody tr").remove();
+              $("#theTable").show();
+              tbl = $("#theTable tbody");
+              $.each(selectedFrnds, function (i) {
+                let colval = "hello!";
+                tbl.append(
+                  `<tr><td>${i}</td><td>${selectedFrnds[i]}</td><td><input id='${selectedFrnds[i]}' type='number' class='myClass form-control'/></td></tr>`
+                );
+              });
+            } else {
+              $("#theTable").hide();
+            }
+          });
+
+        document
+          .querySelector("#paid-select")
+          .addEventListener("change", function () {
+            paidFriends = this.value;
+          });
+
+        // $("input[type=radio]").on("change", function () {
+        //   let Moment = $("input[name=rad_group]").val();
+        //   console.log("my val is:", Moment);
+        // });
+
+        $('input[name="myRadio"]').on("change", function () {
+          radioValue = $('input[name="myRadio"]:checked').val();
+          // alert(radioValue);
+        });
+
+        var optionsarray = [
+          { key: "MOVIES", value: "Movies" },
+          { key: "FOOD", value: "Food" },
+          { key: "TRAVEL", value: "Travel" },
+          { key: "ELECTRONICS", value: "Electronics" },
+          { key: "MEDICAL", value: "Medical" },
+          { key: "SHOPPING", value: "Shopping" },
+          { key: "SERVICES", value: "Services" },
+          { key: "OTHERS", value: "Others" },
+        ];
+        var seloption;
+        $.each(optionsarray, function (i) {
+          console.log(i, optionsarray[i].value);
+          seloption +=
+            '<option value="' +
+            optionsarray[i].value +
+            '">' +
+            optionsarray[i].value +
+            "</option>";
+        });
+        $("#selectExpense").append(seloption);
+
+        $("#addExpense").click(function () {
+          if (selectedFrnds.length > 0) {
+            $(".myClass").each(function (index, item) {
+              // var value = $(item).val();
+              var id = $(item).attr("id");
+              if (id) {
+                var value = $(item).val();
+                let context = {};
+                const temp = context || {};
+                temp[id] = value;
+                shareData.push(temp);
+              }
+              console.log("id: " + id + " value:" + value);
+            });
+          }
+
+          $.ajax({
+            data: {
+              csrfmiddlewaretoken: "{{ csrf_token }}",
+              who_paid: paidFriends,
+              people: selectedFrnds,
+              tag: $("#selectExpense").val(),
+              description: $("#exampleDescription").val(),
+              amount: $("#exampleAmount").val(),
+              split: radioValue,
+              shareData: JSON.stringify(shareData),
+            }, // get the form data
+            type: "POST", // GET or POST
+            url: "{% url 'addexpense' %}",
+            success: function (response) {
+              console.log("expenses data:", response);
+              // response.result.status
+              if(response.result.status=="Success!"){
+                $.notifyBar({cssClass:'success',html: response.result.status,delay:1000});
+              }else{
+                $.notifyBar({cssClass:'error',html: 'Failed to add a transaction.',delay:1000});
+              }
+            },
+          });
+
+          console.log(
+            "frnd",
+            selectedFrnds,
+            "paid:",
+            paidFriends,
+            "categ",
+            $("#selectExpense").val()
+          );
+          console.log(
+            "desc",
+            $("#exampleDescription").val(),
+            "amount",
+            $("#exampleAmount").val()
+          );
+        });
+      });
+    </script>
+  </body>
+</html>

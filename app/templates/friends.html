@@ -2,6 +2,12 @@
 <html lang="en">
   <head>
     {% include "head_part.html" %}
+
+    <!-- Custom styles for this page -->
+    <link
+      href="/static/vendor/datatables/dataTables.bootstrap4.min.css"
+      rel="stylesheet"
+    />
   </head>
 
   <body id="page-top">
@@ -17,28 +23,18 @@
           <div class="container-fluid">
             <!-- Page Heading -->
             <h1 class="h3 mb-4 text-gray-800">Friends</h1>
-            {% for i in arr %}
+            <!-- {% for i in arr %}
             <div class="row">{{ i }}</div>
-            {% endfor %}
+            {% endfor %} -->
 
-            <form class="user" id="registrationForm" method="post">
+            <form class="user"  method="post">
               {% csrf_token %}
               <div class="form-group row">
                 <div class="col-sm-6 mb-3 mb-sm-0">
-                  <!-- <input
-                    type="text"
-                    class="form-control"
-                    id="exampleFriendName"
-                    placeholder="Friend Name"
-                  /> -->
-
                   <select id="selecttoappendto" class="custom-select">
                     <option selected disabled class="text-hide">
                       Select friend
                     </option>
-                    <option value="1">One</option>
-                    <option value="2">Two</option>
-                    <option value="3">Three</option>
                   </select>
                 </div>
 
@@ -53,6 +49,41 @@
                 </div>
               </div>
             </form>
+
+            <!-- DataTales Example -->
+            <div class="card shadow mb-4">
+              <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Friends</h6>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table
+                    class="table friends-table table-bordered"
+                    id="friendsdataTable"
+                    width="100%"
+                    cellspacing="0"
+                  >
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th></th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <!-- <tfoot>
+                      <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                      </tr>
+                    </tfoot> -->
+                    <tbody>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
           </div>
           <!-- /.container-fluid -->
         </div>
@@ -71,35 +102,152 @@
 
     {% include "modals_and_scripts_part.html" %}
 
+    <!-- Page level plugins -->
+    <script src="/static/vendor/datatables/jquery.dataTables.min.js"></script>
+    <script src="/static/vendor/datatables/dataTables.bootstrap4.min.js"></script>
+
+    <!-- Page level custom scripts -->
+
     <script>
       $(document).ready(function () {
+        var current_friend;
+       var friendsdataTable= $("#friendsdataTable").DataTable({columns: [
+              { title: "Name" },
+              { title: "Email" },
+              { title: "Status" },
+            //   {
+            //     data: null,
+            //     className:"dt-center editor-edit",
+            //     defaultContent: '<i class="fa fa-pencil-alt" style="cursor:pointer"/>',
+            //     orderable: false
+            // },
+            { title: "", className:"individual-user" },
+            {
+                data: null,
+                className:"dt-center editor-delete",
+                defaultContent: '<i class="fa fa-trash" style="cursor:pointer"/>',
+                orderable: false
+            },
+              // { title: "", "defaultContent": "<button onclick='edititem();'>Show</button>" },
+              // { title: "", "defaultContent": "<button onclick='deleteitem();'>Delete</button>" }
+          ],
+});
+
         getfriends();
-
-        function getfriends() {
-          console.log("get frnds");
-          var optionsarray = ["test", "hello"];
-
-          var seloption = "";
-
-          $.each(optionsarray, function (i) {
-            seloption +=
-              '<option value="' +
-              optionsarray[i] +
-              '">' +
-              optionsarray[i] +
-              "</option>";
+        getusersFriends();
+        function getusersFriends() {
+          let optionsarray;
+          $.ajax({
+            type: "POST", // GET or POST
+            url: "{% url 'getusersforFriendspage' %}",
+            data: {csrfmiddlewaretoken: '{{ csrf_token }}' },
+            // on success
+            success: function (response) {
+              optionsarray = response.result;
+              var seloption = "";
+              $.each(optionsarray, function (i) {
+                seloption +=
+                  '<option value="' +
+                  optionsarray[i].username +
+                  '">' +
+                  optionsarray[i].username +
+                  "</option>";
+              });
+              $("#selecttoappendto").append(seloption);
+            },
           });
-
-          $("#selecttoappendto").append(seloption);
+        }
+        function getfriends() {
+          let optionsarray;
+          let tablerows = "";
+          $.ajax({
+            type: "POST", // GET or POST
+            url: "{% url 'getfriends' %}",
+            data: {csrfmiddlewaretoken: '{{ csrf_token }}' },
+            // on success
+            success: function (response) {
+              console.log("Friends list  " + response.result);
+              optionsarray = response.result;
+              $.each(optionsarray, function (i) {
+                let money_owed;
+                let button=`<button class='btn btn-primary' value='${optionsarray[i][2]}'>View</button>`;
+                if(optionsarray[i][4]==1){
+                  money_owed= `<font color="green">${optionsarray[i][3]}</font>`;
+                }else{
+                  money_owed= `<font color="red">${optionsarray[i][3]}</font>`;
+                }
+                friendsdataTable.row.add([ optionsarray[i][0],  optionsarray[i][1], money_owed,button]).draw(false);
+              });
+              $('#friendsdataTable > tbody > tr > td.dt-center').css('text-align','center')
+             },
+          });
         }
 
-        $("#friendaddbtn").click(function () {
-          console.log("Handler for .click() called.");
+        $('#friendsdataTable').on('click', 'td.editor-edit', function (e) {
+        e.preventDefault();
+        var $this = $(this);
+        var data = $('#friendsdataTable').DataTable().cell( $this ).data();
+        console.log(data);
+        } );
+        $('#friendsdataTable').on('click', 'td.individual-user', function (e) {
+          e.preventDefault();
+          let $this = $(this);
+          let btnhtml=$this.html();
+          console.log("usernames",$(btnhtml).attr('value'));
+          location.href = 'getIndividualFriend/'+$(btnhtml).attr('value');
 
-          let friend_name = $("#exampleFriendName");
-          console.log("test user name", $("#selecttoappendto").val());
-          return;
-          // create an AJAX call
+        });
+
+        $('#friendsdataTable tbody').on( 'click', 'tr', function () {
+
+          if ( $(this).hasClass('selected') ) {
+              $(this).removeClass('selected');
+          }
+          else {
+            $('#friendsdataTable').DataTable().$('tr.selected').removeClass('selected');
+              $(this).addClass('selected');
+          }
+
+        });
+
+
+        // Delete a record
+        $('#friendsdataTable').on('click', 'td.editor-delete', function (e) {
+            e.preventDefault();
+            let $this = $(this);
+            let friend_name = $('#friendsdataTable').DataTable().cell( $this ).data()[0];
+            $.ajax({
+            data: {
+              csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+              friendname: friend_name,
+            }, // get the form data
+            type: "POST", // GET or POST
+            url: "{% url 'deletefriend' %}",
+            success: function (response) {
+              if(response.result=='Success!'){
+                $("#alert_container").css({ display: "block" });
+                $("#myAlert").addClass("alert-success").html(response.message);
+                $("#alert_container").fadeOut(6000);
+                // window.location.reload();
+                $('#friendsdataTable').DataTable().clear().draw();
+                getfriends();
+
+              }else{
+                $("#alert_container").css({ display: "block" });
+                $("#myAlert").addClass("alert-danger").html(response.message);
+                $("#alert_container").fadeOut(6000);
+              }
+            },})
+
+        });
+
+
+        $("#close_btn").click(function () {
+          $("#alert_container").css({ display: "none" });
+        });
+
+        $("#friendaddbtn").click(function () {
+          let friend_name = $("#selecttoappendto");
           $.ajax({
             data: {
               csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
@@ -107,11 +255,20 @@
             }, // get the form data
             type: "POST", // GET or POST
             url: "{% url 'addfriend' %}",
-            // on success
             success: function (response) {
-              console.log("Thankyou for reaching us out " + response);
+              console.log("Thankyou for reaching us out " + response.result);
+              if (response.result == "Failed!") {
+                console.log("response.message", response.message);
+                $("#alert_container").css({ display: "block" });
+                $("#myAlert").addClass("alert-warning").html(response.message);
+                $("#alert_container").fadeOut(6000);
+              }else{
+                $("#alert_container").css({ display: "block" });
+                $("#myAlert").addClass("alert-success").html(response.message);
+                $("#alert_container").fadeOut(6000);
+                $('#friendsdataTable').DataTable().clear().draw();
+                getfriends();              }
             },
-            // on error
             error: function (response) {
               // alert the error if any error occured
               //   alert(response.responseJSON.errors);
