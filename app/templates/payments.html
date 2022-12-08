@@ -134,7 +134,7 @@ href="/static/css/payments.css"/>
         }
         else if($("#year").val().length==""){
             $.notifyBar({cssClass:'warning',html: 'Please enter the year',});
-        }else if( $("#year").val().length>4){
+        }else if( $("#year").val().length>4||$("#year").val().length<4){
             $.notifyBar({cssClass:'warning',html: 'Please enter the year below or equal to 4 digit.',});
         }
         else if($("#cvv").val().length==""){
@@ -144,6 +144,9 @@ href="/static/css/payments.css"/>
         }
         else{
             $.notifyBar({cssClass:'success',html: 'Payment successful',close:true,delay:2000});
+            setTimeout(() => {
+                window.location = 'index.html';
+                }, 3000);
         }
     });
     });
