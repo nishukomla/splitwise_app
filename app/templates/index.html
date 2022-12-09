@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     {% include "head_part.html" %}
+    <link rel="stylesheet" href="/static/css/jquery.notifyBar.css" />
   </head>
 
   <body id="page-top">
@@ -48,10 +49,10 @@
                         <div
                           class="text-xs font-weight-bold text-primary text-uppercase mb-1"
                         >
-                          Earnings (Monthly)
+                          Transactions (Monthly)
                         </div>
                         <div class="h5 mb-0 font-weight-bold text-gray-800">
-                          $40,000
+                          $<span id="monthlyTransaction"></span>
                         </div>
                       </div>
                       <div class="col-auto">
@@ -71,80 +72,14 @@
                         <div
                           class="text-xs font-weight-bold text-success text-uppercase mb-1"
                         >
-                          Earnings (Annual)
+                          Transactions (Annual)
                         </div>
                         <div class="h5 mb-0 font-weight-bold text-gray-800">
-                          $215,000
+                          $<span id="annualTransaction">0</span>
                         </div>
                       </div>
                       <div class="col-auto">
                         <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Earnings (Monthly) Card Example -->
-              <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card border-left-info shadow h-100 py-2">
-                  <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                      <div class="col mr-2">
-                        <div
-                          class="text-xs font-weight-bold text-info text-uppercase mb-1"
-                        >
-                          Tasks
-                        </div>
-                        <div class="row no-gutters align-items-center">
-                          <div class="col-auto">
-                            <div
-                              class="h5 mb-0 mr-3 font-weight-bold text-gray-800"
-                            >
-                              50%
-                            </div>
-                          </div>
-                          <div class="col">
-                            <div class="progress progress-sm mr-2">
-                              <div
-                                class="progress-bar bg-info"
-                                role="progressbar"
-                                style="width: 50%"
-                                aria-valuenow="50"
-                                aria-valuemin="0"
-                                aria-valuemax="100"
-                              ></div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-auto">
-                        <i
-                          class="fas fa-clipboard-list fa-2x text-gray-300"
-                        ></i>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Pending Requests Card Example -->
-              <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card border-left-warning shadow h-100 py-2">
-                  <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                      <div class="col mr-2">
-                        <div
-                          class="text-xs font-weight-bold text-warning text-uppercase mb-1"
-                        >
-                          Pending Requests
-                        </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">
-                          18
-                        </div>
-                      </div>
-                      <div class="col-auto">
-                        <i class="fas fa-comments fa-2x text-gray-300"></i>
                       </div>
                     </div>
                   </div>
@@ -156,7 +91,7 @@
 
             <div class="row">
               <!-- Area Chart -->
-              <div class="col-xl-8 col-lg-7">
+              <div class="col-xl-7 col-lg-6">
                 <div class="card shadow mb-4">
                   <!-- Card Header - Dropdown -->
                   <div
@@ -165,96 +100,38 @@
                     <h6 class="m-0 font-weight-bold text-primary">
                       Transactions Overview
                     </h6>
-                    <div class="dropdown no-arrow">
-                      <a
-                        class="dropdown-toggle"
-                        href="#"
-                        role="button"
-                        id="dropdownMenuLink"
-                        data-toggle="dropdown"
-                        aria-haspopup="true"
-                        aria-expanded="false"
-                      >
-                        <i
-                          class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"
-                        ></i>
-                      </a>
-                      <div
-                        class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
-                        aria-labelledby="dropdownMenuLink"
-                      >
-                        <div class="dropdown-header">Dropdown Header:</div>
-                        <a class="dropdown-item" href="#">Action</a>
-                        <a class="dropdown-item" href="#">Another action</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#"
-                          >Something else here</a
-                        >
-                      </div>
-                    </div>
                   </div>
                   <!-- Card Body -->
                   <div class="card-body">
                     <div class="chart-area">
-                      <canvas id="myAreaChart"></canvas>
+                      <canvas id="myChart"></canvas>
                     </div>
                   </div>
                 </div>
               </div>
 
               <!-- Pie Chart -->
-              <div class="col-xl-4 col-lg-5">
+              <div class="col-xl-5 col-lg-6">
                 <div class="card shadow mb-4">
                   <!-- Card Header - Dropdown -->
                   <div
                     class="card-header py-3 d-flex flex-row align-items-center justify-content-between"
                   >
                     <h6 class="m-0 font-weight-bold text-primary">
-                      Revenue Sources
+                      Group Sources (upto 5)
                     </h6>
-                    <div class="dropdown no-arrow">
-                      <a
-                        class="dropdown-toggle"
-                        href="#"
-                        role="button"
-                        id="dropdownMenuLink"
-                        data-toggle="dropdown"
-                        aria-haspopup="true"
-                        aria-expanded="false"
-                      >
-                        <i
-                          class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"
-                        ></i>
-                      </a>
-                      <div
-                        class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
-                        aria-labelledby="dropdownMenuLink"
-                      >
-                        <div class="dropdown-header">Dropdown Header:</div>
-                        <a class="dropdown-item" href="#">Action</a>
-                        <a class="dropdown-item" href="#">Another action</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#"
-                          >Something else here</a
-                        >
-                      </div>
-                    </div>
                   </div>
                   <!-- Card Body -->
                   <div class="card-body">
-                    <div class="chart-pie pt-4 pb-2">
-                      <canvas id="myPieChart"></canvas>
-                    </div>
-                    <div class="mt-4 text-center small">
-                      <span class="mr-2">
-                        <i class="fas fa-circle text-primary"></i> Direct
-                      </span>
-                      <span class="mr-2">
-                        <i class="fas fa-circle text-success"></i> Social
-                      </span>
-                      <span class="mr-2">
-                        <i class="fas fa-circle text-info"></i> Referral
-                      </span>
+                    <div
+                      class="pt-4 pb-2"
+                      style="text-align: -webkit-center; height: 320px"
+                    >
+                      <canvas
+                        id="pie-chartcanvas-1"
+                        height="300"
+                        width="300"
+                      ></canvas>
                     </div>
                   </div>
                 </div>
@@ -264,185 +141,22 @@
             <!-- Content Row -->
             <div class="row">
               <!-- Content Column -->
-              <div class="col-lg-6 mb-4">
-                <!-- Project Card Example -->
-                <div class="card shadow mb-4">
-                  <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Projects</h6>
-                  </div>
-                  <div class="card-body">
-                    <h4 class="small font-weight-bold">
-                      Server Migration <span class="float-right">20%</span>
-                    </h4>
-                    <div class="progress mb-4">
-                      <div
-                        class="progress-bar bg-danger"
-                        role="progressbar"
-                        style="width: 20%"
-                        aria-valuenow="20"
-                        aria-valuemin="0"
-                        aria-valuemax="100"
-                      ></div>
-                    </div>
-                    <h4 class="small font-weight-bold">
-                      Sales Tracking <span class="float-right">40%</span>
-                    </h4>
-                    <div class="progress mb-4">
-                      <div
-                        class="progress-bar bg-warning"
-                        role="progressbar"
-                        style="width: 40%"
-                        aria-valuenow="40"
-                        aria-valuemin="0"
-                        aria-valuemax="100"
-                      ></div>
-                    </div>
-                    <h4 class="small font-weight-bold">
-                      Customer Database <span class="float-right">60%</span>
-                    </h4>
-                    <div class="progress mb-4">
-                      <div
-                        class="progress-bar"
-                        role="progressbar"
-                        style="width: 60%"
-                        aria-valuenow="60"
-                        aria-valuemin="0"
-                        aria-valuemax="100"
-                      ></div>
-                    </div>
-                    <h4 class="small font-weight-bold">
-                      Payout Details <span class="float-right">80%</span>
-                    </h4>
-                    <div class="progress mb-4">
-                      <div
-                        class="progress-bar bg-info"
-                        role="progressbar"
-                        style="width: 80%"
-                        aria-valuenow="80"
-                        aria-valuemin="0"
-                        aria-valuemax="100"
-                      ></div>
-                    </div>
-                    <h4 class="small font-weight-bold">
-                      Account Setup <span class="float-right">Complete!</span>
-                    </h4>
-                    <div class="progress">
-                      <div
-                        class="progress-bar bg-success"
-                        role="progressbar"
-                        style="width: 100%"
-                        aria-valuenow="100"
-                        aria-valuemin="0"
-                        aria-valuemax="100"
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Color System -->
-                <div class="row">
-                  <div class="col-lg-6 mb-4">
-                    <div class="card bg-primary text-white shadow">
-                      <div class="card-body">
-                        Primary
-                        <div class="text-white-50 small">#4e73df</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-lg-6 mb-4">
-                    <div class="card bg-success text-white shadow">
-                      <div class="card-body">
-                        Success
-                        <div class="text-white-50 small">#1cc88a</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-lg-6 mb-4">
-                    <div class="card bg-info text-white shadow">
-                      <div class="card-body">
-                        Info
-                        <div class="text-white-50 small">#36b9cc</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-lg-6 mb-4">
-                    <div class="card bg-warning text-white shadow">
-                      <div class="card-body">
-                        Warning
-                        <div class="text-white-50 small">#f6c23e</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-lg-6 mb-4">
-                    <div class="card bg-danger text-white shadow">
-                      <div class="card-body">
-                        Danger
-                        <div class="text-white-50 small">#e74a3b</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-lg-6 mb-4">
-                    <div class="card bg-secondary text-white shadow">
-                      <div class="card-body">
-                        Secondary
-                        <div class="text-white-50 small">#858796</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-lg-6 mb-4">
-                    <div class="card bg-light text-black shadow">
-                      <div class="card-body">
-                        Light
-                        <div class="text-black-50 small">#f8f9fc</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-lg-6 mb-4">
-                    <div class="card bg-dark text-white shadow">
-                      <div class="card-body">
-                        Dark
-                        <div class="text-white-50 small">#5a5c69</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
 
               <div class="col-lg-6 mb-4">
                 <!-- Illustrations -->
                 <div class="card shadow mb-4">
                   <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">
-                      Illustrations
+                      User Amount Illustrations
                     </h6>
                   </div>
                   <div class="card-body">
-                    <div class="text-center">
-                      <img
-                        class="img-fluid px-3 px-sm-4 mt-3 mb-4"
-                        style="width: 25rem"
-                        src="/static/img/undraw_posting_photo.svg"
-                        alt=""
-                      />
-                    </div>
-                    <p>
-                      Add some quality, svg illustrations to your project
-                      courtesy of
-                      <a
-                        target="_blank"
-                        rel="nofollow"
-                        href="https://undraw.co/"
-                        >unDraw</a
-                      >, a constantly updated collection of beautiful svg images
-                      that you can use completely free and without attribution!
-                    </p>
-                    <a target="_blank" rel="nofollow" href="https://undraw.co/"
-                      >Browse Illustrations on unDraw &rarr;</a
-                    >
+                    <canvas id="derp" width="320" height="240"></canvas>
                   </div>
                 </div>
-
                 <!-- Approach -->
+              </div>
+              <div class="col-lg-6 mb-4">
                 <div class="card shadow mb-4">
                   <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">
@@ -451,7 +165,7 @@
                   </div>
                   <div class="card-body">
                     <p>
-                      SB Admin 2 makes extensive use of Bootstrap 4 utility
+                      Splitwise makes extensive use of Bootstrap 4 utility
                       classes in order to reduce CSS bloat and poor page
                       performance. Custom CSS classes are used to create custom
                       components and custom utility classes.
@@ -485,9 +199,307 @@
 
     <!-- Page level plugins -->
     <script src="/static/vendor/chart.js/Chart.min.js"></script>
+    <script src="/static/js/jquery.notifyBar.js"></script>
 
     <!-- Page level custom scripts -->
-    <script src="/static/js/demo/chart-area-demo.js"></script>
-    <script src="/static/js/demo/chart-pie-demo.js"></script>
+    <!-- <script src="/static/js/demo/chart-area-demo.js"></script> -->
+    <!-- <script src="/static/js/demo/chart-pie-demo.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      $(document).ready(function () {
+        var groupsTrans$ = { Names: [], Money: [] };
+        getTransactions();
+        getBarchartData();
+        groupsPieData();
+
+        function getTransactions() {
+          $.ajax({
+            data: {
+              csrfmiddlewaretoken: "{{ csrf_token }}",
+            }, // get the form data
+            type: "POST", // GET or POST
+            url: "{% url 'gettransactions' %}",
+            success: function (response) {
+              console.log("expenses data:", response);
+              let transactdata = JSON.parse(response.result);
+              console.log("transactdata data:", transactdata);
+              var dimensions = { Dates: [], Amounts: [] };
+              if (transactdata.length > 0) {
+                dimensions.Dates = $.map(transactdata, function (value, index) {
+                  let d = new Date(value.fields.date);
+                  let dd = d.getDate();
+                  let mm = d.getMonth() + 1;
+                  let yy = d.getFullYear();
+                  let newdate = yy + "-" + mm + "-" + dd;
+
+                  return newdate;
+                });
+                dimensions.Amounts = $.map(
+                  transactdata,
+                  function (value, index) {
+                    return Number(value.fields.amount);
+                  }
+                );
+
+                var total = 0;
+                var annualTransaction = 0;
+                var monthlyTransaction = 0;
+
+                for (var item in dimensions.Dates) {
+                  let annd = new Date(dimensions.Dates[item]);
+                  let annmm = annd.getMonth() + 1;
+                  if (annmm > 0 && annmm <= 12) {
+                    total += dimensions.Amounts[item];
+                  }
+                  // console.log("total:", total / 12);
+                }
+                annualTransaction = Math.floor(total);
+                monthlyTransaction = Math.floor(total / 12);
+
+                $("#annualTransaction").text(annualTransaction);
+                $("#monthlyTransaction").text(monthlyTransaction);
+
+                console.log("total:", Math.floor(total / 12));
+
+                // added_by
+
+                console.log("dimensions data:", dimensions);
+
+                var newctx = document.getElementById("derp");
+                if (newctx != null) {
+                  const newmyLineChart = new Chart(newctx, {
+                    type: "line",
+                    data: {
+                      labels: dimensions.Dates,
+                      datasets: [
+                        {
+                          label: "User Amount",
+                          data: dimensions.Amounts,
+                          borderColor: "#1cc88a",
+                          backgroundColor: "#36b9cc",
+                          fill: true,
+                          animations: false, // <-- now plural, instead of "animation" before
+                        },
+                      ],
+                    },
+                  });
+                }
+              }
+            },
+            error: function () {
+              // alert("Error occurs!");
+              $.notifyBar({
+                cssClass: "error",
+                html: "Error occurs!",
+                close: true,
+                delay: 2000,
+              });
+            },
+          });
+        }
+
+        function getBarchartData() {
+          const ctx = document.getElementById("myChart");
+          const MONTHS = [
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December",
+          ];
+
+          // getmonthlytransactions
+          let month_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+          let chartMonthsData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+          $.ajax({
+            data: {
+              csrfmiddlewaretoken: "{{ csrf_token }}",
+            }, // get the form data
+            type: "POST", // GET or POST
+            url: "{% url 'getmonthlytransactions' %}",
+            success: function (response) {
+              console.log("expenses data:", JSON.parse(response.result));
+              let monthlyTrans = JSON.parse(response.result);
+              if (monthlyTrans.length > 0) {
+                monthlyTrans.filter((item, index) => {
+                  let date = new Date(item.fields.date);
+                  let month = date.getMonth() + 1;
+                  let exits = month_list.indexOf(month);
+                  let insert = Number(item.fields.amount);
+                  if (month_list.indexOf(month) != -1) {
+                    if (chartMonthsData[exits] > 0) {
+                      chartMonthsData[exits] = Math.floor(
+                        chartMonthsData[exits] + insert
+                      );
+                    } else {
+                      chartMonthsData[exits] = Math.floor(insert);
+                    }
+                  }
+                });
+                console.log("chartMonthsData", chartMonthsData);
+
+                new Chart(ctx, {
+                  type: "bar",
+                  data: {
+                    // labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
+                    labels: MONTHS,
+                    datasets: [
+                      {
+                        label: "Transactions by month",
+                        data: chartMonthsData,
+                        borderWidth: 1,
+                      },
+                    ],
+                  },
+                  options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                      y: {
+                        beginAtZero: true,
+                        max: 10000,
+                        ticks: {
+                          callback: function (value, index, values) {
+                            return "$" + value;
+                          },
+                        },
+                      },
+                    },
+                  },
+                });
+              }
+            },
+            error: function () {
+              // alert("Error occurs!");
+              $.notifyBar({
+                cssClass: "error",
+                html: "Error occurs!",
+                close: true,
+                delay: 2000,
+              });
+            },
+          });
+        }
+        function groupsPieData() {
+          $.ajax({
+            data: {
+              csrfmiddlewaretoken: "{{ csrf_token }}",
+            }, // get the form data
+            type: "POST", // GET or POST
+            url: "{% url 'getgroups' %}",
+            success: function (response) {
+              let groupstransactdata = response.data;
+              console.log("groupstransactdata data:", groupstransactdata);
+              if (groupstransactdata.length > 0) {
+                groupsTrans$.Names = $.map(
+                  groupstransactdata,
+                  function (value, index) {
+                    if (index < 5) {
+                      return value.name;
+                    }
+                  }
+                );
+                groupsTrans$.Money = $.map(
+                  groupstransactdata,
+                  function (value, index) {
+                    if (index < 5) {
+                      return Number(value.money_owed);
+                    }
+                  }
+                );
+                console.log("groupsTrans$", groupsTrans$);
+
+                var options = {
+                  responsive: true,
+                  borderColor: "black",
+                  borderWidth: 1,
+                  title: {
+                    display: true,
+                    position: "top",
+                    text: "Pie Chart",
+                    fontSize: 18,
+                    fontColor: "#111",
+                  },
+                  legend: {
+                    display: true,
+                    position: "bottom",
+                    labels: {
+                      fontColor: "#333",
+                      fontSize: 16,
+                    },
+                  },
+                };
+
+                const CHART_COLORS = {
+                  red: "rgb(255, 99, 132)",
+                  orange: "rgb(255, 159, 64)",
+                  yellow: "rgb(255, 205, 86)",
+                  green: "rgb(75, 192, 192)",
+                  blue: "rgb(54, 162, 235)",
+                  purple: "#ddd",
+                  grey: "rgb(201, 203, 207)",
+                };
+
+                const NAMED_COLORS = [
+                  CHART_COLORS.red,
+                  CHART_COLORS.orange,
+                  CHART_COLORS.yellow,
+                  CHART_COLORS.green,
+                  CHART_COLORS.blue,
+                  CHART_COLORS.purple,
+                  CHART_COLORS.grey,
+                ];
+
+                var data1 = {
+                  labels: groupsTrans$.Names,
+                  datasets: [
+                    {
+                      label: "Group Money",
+                      data: groupsTrans$.Money,
+                      backgroundColor: NAMED_COLORS,
+                      borderWidth: [1, 1, 1, 1, 1],
+                      borderColor: "#36A2EB",
+                    },
+                  ],
+                };
+
+                var ctx1 = $("#pie-chartcanvas-1");
+
+                if (ctx1 != null) {
+                  let chartConfig = {
+                    type: "pie",
+                    data: data1,
+                    options: options,
+                  };
+                  chartConfig.data.datasets.forEach((dataset) => {
+                    if (dataset.data.every((el) => el === 0)) {
+                      // dataset.backgroundColor.push("rgba(255,255,255,0)");
+                      dataset.data.push(1);
+                    }
+                  });
+                  let pieChart = new Chart(ctx1, chartConfig);
+                }
+              }
+            },
+            error: function () {
+              // alert("Error occurs!");
+              $.notifyBar({
+                cssClass: "error",
+                html: "Error occurs!",
+                close: true,
+                delay: 2000,
+              });
+            },
+          });
+        }
+      });
+    </script>
   </body>
 </html>

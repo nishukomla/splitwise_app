@@ -19,8 +19,6 @@ from bootstrap import settings
 from django.conf.urls.static import static
 from app import views
 
-# from app.views import *
-
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -50,11 +48,9 @@ urlpatterns = [
     path('showallnotification/', views.showallnotification, name = 'showallnotification'),
     path('editprofile/', views.editprofile, name = 'editprofile'),# type: ignore
     path('showprofile/', views.showprofile, name = 'showprofile'),# type: ignore
-    # profile
+    path('gettransactions/', views.gettransactions, name = 'gettransactions'),# type: ignore
+    path('getmonthlytransactions/', views.getmonthlytransactions, name = 'getmonthlytransactions'),# type: ignore
     path("password_reset", views.password_reset_request, name="password_reset"),# type: ignore
-
-    # update_friend_data
-    # getusersforFriendspageimg-profile rounded-circle
     path("logout", views.user_logout, name="logout"),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

@@ -752,6 +752,21 @@ def getnotification(request):
 
     return JsonResponse({"result":context},content_type="application/json")
 
+def gettransactions(request):
+    me = request.user
+    rest=Transaction.objects.filter(added_by_id=me.id,date__lt=datetime.today()).only("date","added_by","id","amount")
+    data_send_transactions = serializers.serialize('json', rest)
+    print('test data:',rest)
+    return JsonResponse({"result":data_send_transactions},content_type="application/json")
+def getmonthlytransactions(request):
+    me = request.user
+    month_list = [1,2,3,4,5,6,7,8,9,10,11,12]
+    monthly=Transaction.objects.filter(Q(date__month=1)|Q(date__month=2)|Q(date__month=3)|Q(date__month=4)|Q(date__month=5)|Q(date__month=6)|Q(date__month=7)|Q(date__month=8)|Q(date__month=9)|Q(date__month=10)|Q(date__month=11)|Q(date__month=12),added_by_id=me.id).only("amount","date")
+    print('monthly data:',monthly)
+    data_monthly_transactions = serializers.serialize('json', monthly)
+    return JsonResponse({"result":data_monthly_transactions},content_type="application/json")
+
+
 
 # def showallnotification():
 
@@ -1058,31 +1073,31 @@ def user_logout(request):
 
 def html(request, filename):
     context = {"filename": filename, "collapse": ""}
-    # if request.user.is_anonymous and filename != "login":
-    #     return redirect("/login.html")
+    if request.user.is_anonymous and filename != "login":
+        return redirect("/login.html")
     if filename == "logout":
         logout(request)
         return redirect("/")
-    if filename == "login" and request.method == "POST":
-        username = request.POST.get("username")
-        password = request.POST.get("password")
-        try:
-            if "@" in username:
-                user = User.objects.get(email=username)
-            else:
-                user = User.objects.get(username=username)
-            # user = authenticate(request, username=user.username, password=password)
-            # if user is not None:
-            #     login(request, user)
-            #     return redirect("/")
-            # else:
-            #     context["error"] = "Wrong password"
-        except ObjectDoesNotExist:
-            context["error"] = "User not found"
+    # if filename == "login" and request.method == "POST":
+    #     username = request.POST.get("username")
+    #     password = request.POST.get("password")
+    #     try:
+    #         if "@" in username:
+    #             user = User.objects.get(email=username)
+    #         else:
+    #             user = User.objects.get(username=username)
+    #         # user = authenticate(request, username=user.username, password=password)
+    #         # if user is not None:
+    #         #     login(request, user)
+    #         #     return redirect("/")
+    #         # else:
+    #         #     context["error"] = "Wrong password"
+    #     except ObjectDoesNotExist:
+    #         context["error"] = "User not found"
 
-        print("login")
-        print(username, password)
-    print(filename, request.method)
+    #     print("login")
+    #     print(username, password)
+    # print(filename, request.method)
     if filename in ["buttons", "cards"]:
         context["collapse"] = "components"
     if filename in [
