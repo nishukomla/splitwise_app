@@ -24,8 +24,9 @@ from django.db.models.query_utils import Q
 # from .forms import ContactForm
 from django.http import JsonResponse
 import json
-from .forms import FriendForm, GroupForm, NewUserForm, ChangeForm,ProfileUpdateForm
+from .forms import FriendForm, GroupForm, NewUserForm, ChangeForm, ProfileUpdateForm
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.contrib.auth.forms import AuthenticationForm
 from .models import *
@@ -34,10 +35,10 @@ import pandas as pd
 
 
 def index(request):
-    if request.user.is_anonymous:
-        return redirect("/login.html")
-    else:
-        return html(request, "index")
+    # if request.user.is_anonymous:
+    #     return redirect("/login.html")
+    # else:
+    return html(request, "index")
 
 
 def add_friend_form(request):
@@ -226,6 +227,7 @@ def friend(request, f):
     print(f)
     z = 0
     a = ""
+    zxxx=0
     for y in x:
         if y.person2.username == friend.username:
             zxxx = 0
@@ -668,7 +670,7 @@ def detailed_activity2(request, i, j):
 def deletegroup(request):
     if request.method == "POST":
         for g in Group.objects.all():
-            print('Group new:',g,request.POST,g.group_name)
+            print("Group new:", g, request.POST, g.group_name)
             if g.group_name == request.POST.get("group_name"):
                 money = 0
                 m = Membership.objects.filter(group=g)
@@ -677,12 +679,11 @@ def deletegroup(request):
                         money = 1
                 if money == 0:
                     g.delete()
-                    context = {"status": "Success!","Message":"Deleted successfully."}
+                    context = {"status": "Success!", "Message": "Deleted successfully."}
                     return JsonResponse({"result": context})
-                else :
-                    context = {"status": "Failed!","Message":"Failed to delete."}
+                else:
+                    context = {"status": "Failed!", "Message": "Failed to delete."}
                     return JsonResponse({"result": context})
-
 
 
 def balances(request):
@@ -720,92 +721,121 @@ def balances(request):
         # return JsonResponse({"result": context})
         return render(request, "404.html")
 
+
 def sendNotification(request):
     me = User.objects.get(username=request.user.get_username())
     other = User.objects.get(id=request.POST["frndId"])
-    if request.method == 'POST':
-                    print('f')
-                    message1 = request.POST['message']
-                    print(message1)
-                    mess = Message(person1=me, person2=other, message=message1)
-                    mess.save()
-                    context = {"status": "Success!", "message": "Notification sent successfully."}
-                    return JsonResponse({"result":context })
+    if request.method == "POST":
+        print("f")
+        message1 = request.POST["message"]
+        print(message1)
+        mess = Message(person1=me, person2=other, message=message1)
+        mess.save()
+        context = {"status": "Success!", "message": "Notification sent successfully."}
+        return JsonResponse({"result": context})
     else:
         context = {"status": "Fail!", "message": "Failed to send notification."}
-        return JsonResponse({"result":context })
+        return JsonResponse({"result": context})
 
 
+@login_required
 def getnotification(request):
     me = request.user
-    sent_messages = Message.objects.filter(person1=me).order_by('date')
-    received_messages = Message.objects.filter(person2=me).order_by('date')
-    print('received_messages',received_messages,'sent_messages',sent_messages)
-    data_received_messages = serializers.serialize('json', received_messages)
-    data_sent_messages = serializers.serialize('json', sent_messages)
-    context={'sent_messages' : data_sent_messages,'received_messages' : data_received_messages}
+    sent_messages = Message.objects.filter(person1=me).order_by("date")
+    received_messages = Message.objects.filter(person2=me).order_by("date")
+    print("received_messages", received_messages, "sent_messages", sent_messages)
+    data_received_messages = serializers.serialize("json", received_messages)
+    data_sent_messages = serializers.serialize("json", sent_messages)
+    context = {
+        "sent_messages": data_sent_messages,
+        "received_messages": data_received_messages,
+    }
 
     # month_list = [11, 3, 1, 10,12]
 
     # rest=Transaction.objects.filter(*(Q(date__month=month) for month in month_list))
     # print('test data:',rest)
 
-    return JsonResponse({"result":context},content_type="application/json")
+    return JsonResponse({"result": context}, content_type="application/json")
+
 
 def gettransactions(request):
     me = request.user
-    rest=Transaction.objects.filter(added_by_id=me.id,date__lt=datetime.today()).only("date","added_by","id","amount")
-    data_send_transactions = serializers.serialize('json', rest)
-    print('test data:',rest)
-    return JsonResponse({"result":data_send_transactions},content_type="application/json")
+    rest = Transaction.objects.filter(
+        added_by_id=me.id, date__lt=datetime.today()
+    ).only("date", "added_by", "id", "amount")
+    data_send_transactions = serializers.serialize("json", rest)
+    print("test data:", rest)
+    return JsonResponse(
+        {"result": data_send_transactions}, content_type="application/json"
+    )
+
+
 def getmonthlytransactions(request):
     me = request.user
-    month_list = [1,2,3,4,5,6,7,8,9,10,11,12]
-    monthly=Transaction.objects.filter(Q(date__month=1)|Q(date__month=2)|Q(date__month=3)|Q(date__month=4)|Q(date__month=5)|Q(date__month=6)|Q(date__month=7)|Q(date__month=8)|Q(date__month=9)|Q(date__month=10)|Q(date__month=11)|Q(date__month=12),added_by_id=me.id).only("amount","date")
-    print('monthly data:',monthly)
-    data_monthly_transactions = serializers.serialize('json', monthly)
-    return JsonResponse({"result":data_monthly_transactions},content_type="application/json")
-
+    month_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    monthly = Transaction.objects.filter(
+        Q(date__month=1)
+        | Q(date__month=2)
+        | Q(date__month=3)
+        | Q(date__month=4)
+        | Q(date__month=5)
+        | Q(date__month=6)
+        | Q(date__month=7)
+        | Q(date__month=8)
+        | Q(date__month=9)
+        | Q(date__month=10)
+        | Q(date__month=11)
+        | Q(date__month=12),
+        added_by_id=me.id,
+    ).only("amount", "date")
+    print("monthly data:", monthly)
+    data_monthly_transactions = serializers.serialize("json", monthly)
+    return JsonResponse(
+        {"result": data_monthly_transactions}, content_type="application/json"
+    )
 
 
 # def showallnotification():
 
+
 def showallnotification(request):
-	me = request.user
-	sent_messages = Message.objects.filter(person1=me).order_by('date')
-	received_messages = Message.objects.filter(person2=me).order_by('date')
-	context = {
-		'sent_messages' : sent_messages,
-		'received_messages' : received_messages
-	}
-	template = loader.get_template('notifications.html')
-	return(HttpResponse(template.render(context,request)))
+    me = request.user
+    sent_messages = Message.objects.filter(person1=me).order_by("date")
+    received_messages = Message.objects.filter(person2=me).order_by("date")
+    context = {"sent_messages": sent_messages, "received_messages": received_messages}
+    template = loader.get_template("notifications.html")
+    return HttpResponse(template.render(context, request))
+
 
 def showprofile(request):
     edit_profile_form = ProfileUpdateForm()
-    template = loader.get_template('profile.html')
+    template = loader.get_template("profile.html")
     context = {
-		'edit_profile_form' : edit_profile_form,
-        }
+        "edit_profile_form": edit_profile_form,
+    }
     return HttpResponse(template.render(context, request))
 
 
 def editprofile(request):
     edit_profile_form = ProfileUpdateForm()
-    if request.method == 'POST':
-        if 'edit_profile' in request.POST:
-                # print(request.user.profile.bio)
-                edit_profile_form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user.profile)
-                if edit_profile_form.is_valid():
-                    edit_profile_form.save()
-                    #print(bio)
+    if request.method == "POST":
+        if "edit_profile" in request.POST:
+            # print(request.user.profile.bio)
+            edit_profile_form = ProfileUpdateForm(
+                request.POST, request.FILES, instance=request.user.profile
+            )
+            if edit_profile_form.is_valid():
+                edit_profile_form.save()
+                # print(bio)
     else:
-        edit_profile_form=ProfileUpdateForm()
-    template = loader.get_template('profile.html')
+        edit_profile_form = ProfileUpdateForm()
+    template = loader.get_template("profile.html")
     context = {
-		'edit_profile_form' : edit_profile_form,
-        }
+        "edit_profile_form": edit_profile_form,
+    }
     return HttpResponse(template.render(context, request))
+
 
 def transaction_form(request):
     # me = User.objects.filter(id=request.user.id).values("username", "id").first()
@@ -975,17 +1005,6 @@ def password_reset_request(request):
         if associated_users.exists():
             for user in associated_users:
                 subject = "Password Reset Requested"
-                # email_template_name = "/templates/password_reset_email.txt"
-                c = {
-                    "email": user.email,
-                    "domain": "127.0.0.1:8000",
-                    "site_name": "Website",
-                    "uid": urlsafe_base64_encode(force_bytes(user.pk)),
-                    "user": user,
-                    "token": default_token_generator.make_token(user),
-                    "protocol": "http",
-                }
-                # email = render_to_string(c)
                 try:
                     send_mail(
                         subject,
@@ -1073,7 +1092,7 @@ def user_logout(request):
 
 def html(request, filename):
     context = {"filename": filename, "collapse": ""}
-    if request.user.is_anonymous and filename != "login":
+    if request.user.is_anonymous and filename == "index":
         return redirect("/login.html")
     if filename == "logout":
         logout(request)

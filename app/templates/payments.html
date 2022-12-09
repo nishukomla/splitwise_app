@@ -122,7 +122,7 @@ href="/static/css/payments.css"/>
             $.notifyBar({cssClass:'warning',html: 'Please enter the card holder name',});
         }else if($("#cardNumber").val().length==""){
             $.notifyBar({cssClass:'warning',html: 'Please enter the card number with 15 digit',});
-        }else if($("#cardNumber").val().length >=15){
+        }else if($("#cardNumber").val() >15){
             $.notifyBar({cssClass:'warning',html: 'Please enter the card number with 15 digit',});
         }
         else if($("#amount").val().length==""){
@@ -145,7 +145,7 @@ href="/static/css/payments.css"/>
         else{
             $.notifyBar({cssClass:'success',html: 'Payment successful',close:true,delay:2000});
             setTimeout(() => {
-                window.location = 'index.html';
+                window.location.href = 'index.html';
                 }, 3000);
         }
     });
