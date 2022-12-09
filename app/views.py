@@ -1020,7 +1020,11 @@ def password_reset_request(request):
                     return JsonResponse(response_data)
                 except BadHeaderError:
                     return HttpResponse("Invalid header found.")
-
+        else:
+             response_data = {}
+             response_data["result"] = "Fail!"
+             response_data["message"] = "User Does not exits."
+             return JsonResponse(response_data)
 
 def registration_form(request):
     is_ajax = request.META.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest"
