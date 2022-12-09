@@ -9,8 +9,8 @@ created production branch for deployment.
 go to the path of the project folder
 
 1. run python manage.py runserver
-2. open app [This is an external link](http://localhost:8000/)
+2. open app in local: [This is an external link](http://localhost:8000/)
 
 # App preview link
 
-open app [Splitwise App](http://splitwisecu.herokuapp.com/)
+Click on: [Splitwise App](http://splitwisecu.herokuapp.com/)
