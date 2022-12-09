@@ -224,66 +224,61 @@
               let transactdata = JSON.parse(response.result);
               console.log("transactdata data:", transactdata);
               var dimensions = { Dates: [], Amounts: [] };
-              if (transactdata.length > 0) {
-                dimensions.Dates = $.map(transactdata, function (value, index) {
-                  let d = new Date(value.fields.date);
-                  let dd = d.getDate();
-                  let mm = d.getMonth() + 1;
-                  let yy = d.getFullYear();
-                  let newdate = yy + "-" + mm + "-" + dd;
+              dimensions.Dates = $.map(transactdata, function (value, index) {
+                let d = new Date(value.fields.date);
+                let dd = d.getDate();
+                let mm = d.getMonth() + 1;
+                let yy = d.getFullYear();
+                let newdate = yy + "-" + mm + "-" + dd;
 
-                  return newdate;
+                return newdate;
+              });
+              dimensions.Amounts = $.map(transactdata, function (value, index) {
+                return Number(value.fields.amount);
+              });
+
+              var total = 0;
+              var annualTransaction = 0;
+              var monthlyTransaction = 0;
+
+              for (var item in dimensions.Dates) {
+                let annd = new Date(dimensions.Dates[item]);
+                let annmm = annd.getMonth() + 1;
+                if (annmm > 0 && annmm <= 12) {
+                  total += dimensions.Amounts[item];
+                }
+                // console.log("total:", total / 12);
+              }
+              annualTransaction = Math.floor(total);
+              monthlyTransaction = Math.floor(total / 12);
+
+              $("#annualTransaction").text(annualTransaction);
+              $("#monthlyTransaction").text(monthlyTransaction);
+
+              console.log("total:", Math.floor(total / 12));
+
+              // added_by
+
+              console.log("dimensions data:", dimensions);
+
+              var newctx = document.getElementById("derp");
+              if (newctx != null) {
+                const newmyLineChart = new Chart(newctx, {
+                  type: "line",
+                  data: {
+                    labels: dimensions.Dates,
+                    datasets: [
+                      {
+                        label: "User Amount",
+                        data: dimensions.Amounts,
+                        borderColor: "#1cc88a",
+                        backgroundColor: "#36b9cc",
+                        fill: true,
+                        animations: false, // <-- now plural, instead of "animation" before
+                      },
+                    ],
+                  },
                 });
-                dimensions.Amounts = $.map(
-                  transactdata,
-                  function (value, index) {
-                    return Number(value.fields.amount);
-                  }
-                );
-
-                var total = 0;
-                var annualTransaction = 0;
-                var monthlyTransaction = 0;
-
-                for (var item in dimensions.Dates) {
-                  let annd = new Date(dimensions.Dates[item]);
-                  let annmm = annd.getMonth() + 1;
-                  if (annmm > 0 && annmm <= 12) {
-                    total += dimensions.Amounts[item];
-                  }
-                  // console.log("total:", total / 12);
-                }
-                annualTransaction = Math.floor(total);
-                monthlyTransaction = Math.floor(total / 12);
-
-                $("#annualTransaction").text(annualTransaction);
-                $("#monthlyTransaction").text(monthlyTransaction);
-
-                console.log("total:", Math.floor(total / 12));
-
-                // added_by
-
-                console.log("dimensions data:", dimensions);
-
-                var newctx = document.getElementById("derp");
-                if (newctx != null) {
-                  const newmyLineChart = new Chart(newctx, {
-                    type: "line",
-                    data: {
-                      labels: dimensions.Dates,
-                      datasets: [
-                        {
-                          label: "User Amount",
-                          data: dimensions.Amounts,
-                          borderColor: "#1cc88a",
-                          backgroundColor: "#36b9cc",
-                          fill: true,
-                          animations: false, // <-- now plural, instead of "animation" before
-                        },
-                      ],
-                    },
-                  });
-                }
               }
             },
             error: function () {
@@ -327,54 +322,52 @@
             success: function (response) {
               console.log("expenses data:", JSON.parse(response.result));
               let monthlyTrans = JSON.parse(response.result);
-              if (monthlyTrans.length > 0) {
-                monthlyTrans.filter((item, index) => {
-                  let date = new Date(item.fields.date);
-                  let month = date.getMonth() + 1;
-                  let exits = month_list.indexOf(month);
-                  let insert = Number(item.fields.amount);
-                  if (month_list.indexOf(month) != -1) {
-                    if (chartMonthsData[exits] > 0) {
-                      chartMonthsData[exits] = Math.floor(
-                        chartMonthsData[exits] + insert
-                      );
-                    } else {
-                      chartMonthsData[exits] = Math.floor(insert);
-                    }
+              monthlyTrans.filter((item, index) => {
+                let date = new Date(item.fields.date);
+                let month = date.getMonth() + 1;
+                let exits = month_list.indexOf(month);
+                let insert = Number(item.fields.amount);
+                if (month_list.indexOf(month) != -1) {
+                  if (chartMonthsData[exits] > 0) {
+                    chartMonthsData[exits] = Math.floor(
+                      chartMonthsData[exits] + insert
+                    );
+                  } else {
+                    chartMonthsData[exits] = Math.floor(insert);
                   }
-                });
-                console.log("chartMonthsData", chartMonthsData);
+                }
+              });
+              console.log("chartMonthsData", chartMonthsData);
 
-                new Chart(ctx, {
-                  type: "bar",
-                  data: {
-                    // labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
-                    labels: MONTHS,
-                    datasets: [
-                      {
-                        label: "Transactions by month",
-                        data: chartMonthsData,
-                        borderWidth: 1,
-                      },
-                    ],
-                  },
-                  options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                      y: {
-                        beginAtZero: true,
-                        max: 10000,
-                        ticks: {
-                          callback: function (value, index, values) {
-                            return "$" + value;
-                          },
+              new Chart(ctx, {
+                type: "bar",
+                data: {
+                  // labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
+                  labels: MONTHS,
+                  datasets: [
+                    {
+                      label: "Transactions by month",
+                      data: chartMonthsData,
+                      borderWidth: 1,
+                    },
+                  ],
+                },
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      max: 10000,
+                      ticks: {
+                        callback: function (value, index, values) {
+                          return "$" + value;
                         },
                       },
                     },
                   },
-                });
-              }
+                },
+              });
             },
             error: function () {
               // alert("Error occurs!");
@@ -397,95 +390,93 @@
             success: function (response) {
               let groupstransactdata = response.data;
               console.log("groupstransactdata data:", groupstransactdata);
-              if (groupstransactdata.length > 0) {
-                groupsTrans$.Names = $.map(
-                  groupstransactdata,
-                  function (value, index) {
-                    if (index < 5) {
-                      return value.name;
-                    }
+              groupsTrans$.Names = $.map(
+                groupstransactdata,
+                function (value, index) {
+                  if (index < 5) {
+                    return value.name;
                   }
-                );
-                groupsTrans$.Money = $.map(
-                  groupstransactdata,
-                  function (value, index) {
-                    if (index < 5) {
-                      return Number(value.money_owed);
-                    }
-                  }
-                );
-                console.log("groupsTrans$", groupsTrans$);
-
-                var options = {
-                  responsive: true,
-                  borderColor: "black",
-                  borderWidth: 1,
-                  title: {
-                    display: true,
-                    position: "top",
-                    text: "Pie Chart",
-                    fontSize: 18,
-                    fontColor: "#111",
-                  },
-                  legend: {
-                    display: true,
-                    position: "bottom",
-                    labels: {
-                      fontColor: "#333",
-                      fontSize: 16,
-                    },
-                  },
-                };
-
-                const CHART_COLORS = {
-                  red: "rgb(255, 99, 132)",
-                  orange: "rgb(255, 159, 64)",
-                  yellow: "rgb(255, 205, 86)",
-                  green: "rgb(75, 192, 192)",
-                  blue: "rgb(54, 162, 235)",
-                  purple: "#ddd",
-                  grey: "rgb(201, 203, 207)",
-                };
-
-                const NAMED_COLORS = [
-                  CHART_COLORS.red,
-                  CHART_COLORS.orange,
-                  CHART_COLORS.yellow,
-                  CHART_COLORS.green,
-                  CHART_COLORS.blue,
-                  CHART_COLORS.purple,
-                  CHART_COLORS.grey,
-                ];
-
-                var data1 = {
-                  labels: groupsTrans$.Names,
-                  datasets: [
-                    {
-                      label: "Group Money",
-                      data: groupsTrans$.Money,
-                      backgroundColor: NAMED_COLORS,
-                      borderWidth: [1, 1, 1, 1, 1],
-                      borderColor: "#36A2EB",
-                    },
-                  ],
-                };
-
-                var ctx1 = $("#pie-chartcanvas-1");
-
-                if (ctx1 != null) {
-                  let chartConfig = {
-                    type: "pie",
-                    data: data1,
-                    options: options,
-                  };
-                  chartConfig.data.datasets.forEach((dataset) => {
-                    if (dataset.data.every((el) => el === 0)) {
-                      // dataset.backgroundColor.push("rgba(255,255,255,0)");
-                      dataset.data.push(1);
-                    }
-                  });
-                  let pieChart = new Chart(ctx1, chartConfig);
                 }
+              );
+              groupsTrans$.Money = $.map(
+                groupstransactdata,
+                function (value, index) {
+                  if (index < 5) {
+                    return Number(value.money_owed);
+                  }
+                }
+              );
+              console.log("groupsTrans$", groupsTrans$);
+
+              var options = {
+                responsive: true,
+                borderColor: "black",
+                borderWidth: 1,
+                title: {
+                  display: true,
+                  position: "top",
+                  text: "Pie Chart",
+                  fontSize: 18,
+                  fontColor: "#111",
+                },
+                legend: {
+                  display: true,
+                  position: "bottom",
+                  labels: {
+                    fontColor: "#333",
+                    fontSize: 16,
+                  },
+                },
+              };
+
+              const CHART_COLORS = {
+                red: "rgb(255, 99, 132)",
+                orange: "rgb(255, 159, 64)",
+                yellow: "rgb(255, 205, 86)",
+                green: "rgb(75, 192, 192)",
+                blue: "rgb(54, 162, 235)",
+                purple: "#ddd",
+                grey: "rgb(201, 203, 207)",
+              };
+
+              const NAMED_COLORS = [
+                CHART_COLORS.red,
+                CHART_COLORS.orange,
+                CHART_COLORS.yellow,
+                CHART_COLORS.green,
+                CHART_COLORS.blue,
+                CHART_COLORS.purple,
+                CHART_COLORS.grey,
+              ];
+
+              var data1 = {
+                labels: groupsTrans$.Names,
+                datasets: [
+                  {
+                    label: "Group Money",
+                    data: groupsTrans$.Money,
+                    backgroundColor: NAMED_COLORS,
+                    borderWidth: [1, 1, 1, 1, 1],
+                    borderColor: "#36A2EB",
+                  },
+                ],
+              };
+
+              var ctx1 = $("#pie-chartcanvas-1");
+
+              if (ctx1 != null) {
+                let chartConfig = {
+                  type: "pie",
+                  data: data1,
+                  options: options,
+                };
+                chartConfig.data.datasets.forEach((dataset) => {
+                  if (dataset.data.every((el) => el === 0)) {
+                    // dataset.backgroundColor.push("rgba(255,255,255,0)");
+                    dataset.data.push(1);
+                  }
+                });
+                let pieChart = new Chart(ctx1, chartConfig);
               }
             },
             error: function () {
